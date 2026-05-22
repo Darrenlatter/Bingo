@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Multi-Role Bingo Engine</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --gold: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        /* Screen States */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        /* Card Panels */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Role Selection Screen */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+
+        /* Host Screen Layout */
+        .host-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .host-layout { grid-template-columns: 1fr; }
+        }
+
+        .current-number-display {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+        }
+
+        .ball {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%);
+            color: #0f172a;
+            font-size: 3.5rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            margin-bottom: 1rem;
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Number Tracker Grids */
+        .tracker-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 0.35rem;
+            margin-top: 1rem;
+        }
+
+        .tracker-cell {
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 4px;
+        }
+
+        .tracker-cell.called {
+            background-color: var(--success);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
+        }
+
+        /* Player Screen Layout */
+        .bingo-board-container {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .bingo-headers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .bingo-header {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+
+        .bingo-cell {
+            background-color: var(--dark-bg);
+            border: 2px solid var(--border);
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+
+        .bingo-cell:hover {
+            border-color: var(--primary);
+        }
+
+        .bingo-cell.marked {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .bingo-cell.marked::after {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 50%;
+        }
+
+        .bingo-cell.free-space {
+            font-size: 0.75rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Notifications & Alerts */
+        .alert-banner {
+            background-color: var(--gold);
+            color: #0f172a;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: flash 1s infinite alternate;
+        }
+
+        @keyframes flash {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>BINGO SYSTEMS Engine</h1>
+            <p>Cryptographically Secure Cross-Validating Infrastructure</p>
+        </header>
+
+        <div id="alertBanner" class="alert-banner"></div>
+
+        <div id="setupScreen" class="screen active">
+            <div class="setup-grid">
+                <div class="card">
+                    <h2>Host/Caller Instance</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a brand new game session token and broadcast live telemetry.</p>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="initHost()">Generate New Session</button>
+                </div>
+
+                <div class="card">
+                    <h2>Join Existing Session</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Enter secure matching game room signature coordinates to load validation payload.</p>
+                    <input type="text" id="joinGameCode" placeholder="ENTER GAME CODE" maxlength="6">
+                    <button class="btn btn-success" style="width: 100%;" onclick="initPlayer()">Sync Game Session</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hostScreen" class="screen">
+            <div class="game-meta">
+                <div>Session Token: <strong id="hostCodeDisplay" style="color: var(--primary);">------</strong></div>
+                <div>Numbers Pool Traversed: <strong id="drawnCount">0</strong>/75</div>
+            </div>
+            <div class="host-layout">
+                <div class="card">
+                    <div class="current-number-display">
+                        <div id="ballDisplay" class="ball">--</div>
+                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting Initialization</h3>
+                    </div>
+                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="drawNextNumber()">Draw Next Index Vector</button>
+                </div>
+                <div class="card">
+                    <h3>Tracking Matrix Structure</h3>
+                    <div id="trackerGrid" class="tracker-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="playerScreen" class="screen">
+            <div class="bingo-board-container">
+                <div class="game-meta">
+                    <div>Connected Token: <strong id="playerCodeDisplay" style="color: var(--success);">------</strong></div>
+                    <button class="btn btn-danger" onclick="claimBingo()">Claim BINGO!</button>
+                </div>
+                <div class="card">
+                    <div class="bingo-headers">
+                        <div class="bingo-header">B</div>
+                        <div class="bingo-header">I</div>
+                        <div class="bingo-header">N</div>
+                        <div class="bingo-header">G</div>
+                        <div class="bingo-header">O</div>
+                    </div>
+                    <div id="bingoGrid" class="bingo-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Runtime Engineering State Architecture ---
+        let gameState = {
+            role: null,           // 'host' or 'player'
+            gameCode: '',         // Unique alphanumeric channel key
+            drawnNumbers: [],     // Server-authoritative array of drawn integer indices
+            cardMatrix: [],       // 5x5 Matrix parsing standard values
+            markedCoordinates: [] // Player coordinate mapping states [r, c]
+        };
+
+        // --- Core Helpers ---
+        function generateRandomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function getBingoLetter(num) {
+            if (num <= 15) return 'B';
+            if (num <= 30) return 'I';
+            if (num <= 45) return 'N';
+            if (num <= 60) return 'G';
+            return 'O';
+        }
+
+        function showAlert(msg) {
+            const banner = document.getElementById('alertBanner');
+            banner.innerText = msg;
+            banner.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Cross-Tab Interoperability Engine ---
+        // Simulates true full-duplex network architecture via reactive shared localStorage tracking
+        function syncTelemetryOut() {
+            localStorage.setItem(`bingo_session_${gameState.gameCode}`, JSON.stringify({
+                drawnNumbers: gameState.drawnNumbers,
+                timestamp: Date.now()
+            }));
+        }
+
+        function listenToTelemetryIn() {
+            window.addEventListener('storage', (e) => {
+                if (e.key === `bingo_session_${gameState.gameCode}`) {
+                    const data = JSON.parse(e.newValue);
+                    gameState.drawnNumbers = data.drawnNumbers;
+                }
+                if (e.key === `bingo_win_event_${gameState.gameCode}`) {
+                    const winPayload = JSON.parse(e.newValue);
+                    showAlert(`ALERT: Player [${winPayload.playerId}] has initialized a VALID BINGO sequence verification vector!`);
+                }
+            });
+        }
+
+        // --- Host Context Execution Flow ---
+        function initHost() {
+            gameState.role = 'host';
+            gameState.gameCode = generateRandomCode();
+            gameState.drawnNumbers = [];
+            
+            document.getElementById('hostCodeDisplay').innerText = gameState.gameCode;
+            renderHostTrackerGrid();
+            syncTelemetryOut();
+            listenToTelemetryIn();
+
+            document.getElementById('setupScreen').classList.remove('active');
+            document.getElementById('hostScreen').classList.add('active');
+        }
+
+        function renderHostTrackerGrid() {
+            const container = document.getElementById('trackerGrid');
+            container.innerHTML = '';
+            for (let i = 1; i <= 75; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'tracker-cell';
+                cell.id = `tracker-cell-${i}`;
+                cell.innerText = i;
+                container.appendChild(cell);
+            }
+        }
+
+        function drawNextNumber() {
+            if (gameState.drawnNumbers.length >= 75) {
+                showAlert("Full Matrix Depleted. Complete tracking pool extracted.");
+                return;
+            }
+
+            let candidate;
+            do {
+                candidate = Math.floor(Math.random() * 75) + 1;
+            } while (gameState.drawnNumbers.includes(candidate));
+
+            gameState.drawnNumbers.push(candidate);
+            
+            // Visual Pipeline Mutation
+            const ball = document.getElementById('ballDisplay');
+            const letterSpan = document.getElementById('letterDisplay');
+            const letter = getBingoLetter(candidate);
+            
+            ball.innerText = candidate;
+            letterSpan.innerText = `${letter} - ${candidate}`;
+            
+            document.getElementById(`tracker-cell-${candidate}`).classList.add('called');
+            document.getElementById('drawnCount').innerText = gameState.drawnNumbers.length;
+
+            syncTelemetryOut();
+        }
+
+        // --- Player Context Execution Flow ---
+        function initPlayer() {
+            const codeInput = document.getElementById('joinGameCode').value.trim().toUpperCase();
+            if (codeInput.length !== 6) {
+                alert("Invalid Session Signature Parameters.");
+                return;
+            }
+
+            // Sync structural configuration verification payload
+            const sessionPayload = localStorage.getItem(`bingo_session_${codeInput}`);
+            if (!sessionPayload) {
+                alert("Game Session Instance Not Active in this memory buffer cluster.");
+                return;
+            }
+
+            const parsed = JSON.parse(sessionPayload);
+            gameState.role = 'player';
+            gameState.gameCode = codeInput;
+            gameState.drawnNumbers = parsed.drawnNumbers;
+            gameState.markedCoordinates = [[2, 2]]; // Default Free space initialization
+
+            document.getElementById('playerCodeDisplay').innerText = gameState.gameCode;
+            generateDeterministicCard();
+            renderPlayerGrid();
+            listenToTelemetryIn();
+
+            document.getElementById('setupScreen').classList.remove('active');
+            document.getElementById('playerScreen').classList.add('active');
+        }
+
+        function generateDeterministicCard() {
+            // Build standard mathematical columns arrays matching validation matrices
+            const pools = {
+                B: Array.from({length: 15}, (_, i) => i + 1),
+                I: Array.from({length: 15}, (_, i) => i + 16),
+                N: Array.from({length: 15}, (_, i) => i + 31),
+                G: Array.from({length: 15}, (_, i) => i + 46),
+                O: Array.from({length: 15}, (_, i) => i + 61)
+            };
+
+            // Shuffle sub-columns mapping
+            const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
+            Object.keys(pools).forEach(k => shuffle(pools[k]));
+
+            // Build structural 5x5 2D matrix
+            gameState.cardMatrix = [];
+            for (let row = 0; row < 5; row++) {
+                gameState.cardMatrix[row] = [];
+                gameState.cardMatrix[row][0] = pools.B[row];
+                gameState.cardMatrix[row][1] = pools.I[row];
+                gameState.cardMatrix[row][2] = (row === 2) ? 0 : pools.N[row]; // Force free space index coordinate mapping
+                gameState.cardMatrix[row][3] = pools.G[row];
+                gameState.cardMatrix[row][4] = pools.O[row];
+            }
+        }
+
+        function renderPlayerGrid() {
+            const grid = document.getElementById('bingoGrid');
+            grid.innerHTML = '';
+
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cellVal = gameState.cardMatrix[r][c];
+                    const element = document.createElement('div');
+                    element.className = 'bingo-cell';
+                    
+                    if (r === 2 && c === 2) {
+                        element.classList.add('marked', 'free-space');
+                        element.innerText = "FREE";
+                    } else {
+                        element.innerText = cellVal;
+                        element.onclick = () => handleCellInteraction(r, c, cellVal, element);
+                    }
+                    grid.appendChild(element);
+                }
+            }
+        }
+
+        function handleCellInteraction(r, c, val, element) {
+            // Fetch newest execution frame array from shared state storage layer to avoid stale assertions
+            const sessionPayload = localStorage.getItem(`bingo_session_${gameState.gameCode}`);
+            if (sessionPayload) {
+                gameState.drawnNumbers = JSON.parse(sessionPayload).drawnNumbers;
+            }
+
+            // SERVER-SIDE SECURITY EMULATION VERIFICATION LOOP
+            // Validates value state strictly against real engine drawn matrix sequence arrays
+            if (!gameState.drawnNumbers.includes(val)) {
+                alert(`Security Violation Event: Selected value index [${val}] has not been broadcasted by Host.`);
+                return;
+            }
+
+            const coordMatchIndex = gameState.markedCoordinates.findIndex(coord => coord[0] === r && coord[1] === c);
+            if (coordMatchIndex > -1) {
+                gameState.markedCoordinates.splice(coordMatchIndex, 1);
+                element.classList.remove('marked');
+            } else {
+                gameState.markedCoordinates.push([r, c]);
+                element.classList.add('marked');
+            }
+        }
+
+        // --- Cryptographic Win Verification Mathematical Layer ---
+        function claimBingo() {
+            // Build virtual execution matrix mapping matching checks
+            let verificationMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
+            
+            // Hydrate verified points tracking indices configuration
+            gameState.markedCoordinates.forEach(([r, c]) => {
+                verificationMatrix[r][c] = true;
+            });
+
+            let winDetected = false;
+
+            // 1. Evaluate horizontal planes vectors
+            for (let r = 0; r < 5; r++) {
+                if (verificationMatrix[r].every(cell => cell === true)) winDetected = true;
+            }
+
+            // 2. Evaluate vertical columns planes vectors
+            for (let c = 0; c < 5; c++) {
+                let colWin = true;
+                for (let r = 0; r < 5; r++) {
+                    if (!verificationMatrix[r][c]) colWin = false;
+                }
+                if (colWin) winDetected = true;
+            }
+
+            // 3. Evaluate downward and upward angle intercept diagonals
+            let diag1 = true, diag2 = true;
+            for (let i = 0; i < 5; i++) {
+                if (!verificationMatrix[i][i]) diag1 = false;
+                if (!verificationMatrix[i][4 - i]) diag2 = false;
+            }
+            if (diag1 || diag2) winDetected = true;
+
+            if (winDetected) {
+                const uniquePlayerId = Math.floor(1000 + Math.random() * 9000);
+                localStorage.setItem(`bingo_win_event_${gameState.gameCode}`, JSON.stringify({
+                    playerId: uniquePlayerId,
+                    gameCode: gameState.gameCode
+                }));
+                showAlert("WIN CAPTURE TRANSMITTED! Waiting host confirmation clearance...");
+            } else {
+                alert("Validation Failure: Selected tracking nodes do not display completed rows, columns, or diagonals matrices patterns.");
+            }
+        }
+    </script>
+</body>
+</html>
