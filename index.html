@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Multi-Role Bingo Engine</title>
+    <title>P2P Distributed Network Bingo</title>
+    <!-- Import PeerJS for cloud-brokered direct device connections -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -18,330 +20,100 @@
             --gold: #eab308;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        header p {
-            color: var(--text-muted);
-        }
-
-        /* Screen States */
-        .screen {
-            display: none;
-        }
-        .screen.active {
-            display: block;
-        }
-
-        /* Card Panels */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Role Selection Screen */
-        .setup-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 1rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-size: 0.875rem;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--dark-bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2.5rem; }
+        header h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        header p { color: var(--text-muted); }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-hover); }
         .btn-success { background-color: var(--success); color: white; }
         .btn-danger { background-color: var(--danger); color: white; }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            text-align: center;
-        }
-
-        input[type="text"]:focus {
-            outline: 2px solid var(--primary);
-            border-color: transparent;
-        }
-
-        /* Host Screen Layout */
-        .host-layout {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .host-layout { grid-template-columns: 1fr; }
-        }
-
-        .current-number-display {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 250px;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            border-radius: 12px;
-            border: 2px dashed var(--border);
-        }
-
-        .ball {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%);
-            color: #0f172a;
-            font-size: 3.5rem;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            margin-bottom: 1rem;
-            animation: pop 0.3s ease-out;
-        }
-
-        @keyframes pop {
-            0% { transform: scale(0.7); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Number Tracker Grids */
-        .tracker-grid {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            gap: 0.35rem;
-            margin-top: 1rem;
-        }
-
-        .tracker-cell {
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border);
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            border-radius: 4px;
-        }
-
-        .tracker-cell.called {
-            background-color: var(--success);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-        }
-
-        /* Player Screen Layout */
-        .bingo-board-container {
-            max-width: 550px;
-            margin: 0 auto;
-        }
-
-        .bingo-headers {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-            text-align: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .bingo-header {
-            font-size: 1.75rem;
-            font-weight: 900;
-            color: var(--gold);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .bingo-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-        }
-
-        .bingo-cell {
-            background-color: var(--dark-bg);
-            border: 2px solid var(--border);
-            aspect-ratio: 1;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.15s ease;
-        }
-
-        .bingo-cell:hover {
-            border-color: var(--primary);
-        }
-
-        .bingo-cell.marked {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-            border-color: transparent;
-            color: white;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .bingo-cell.marked::after {
-            content: '';
-            position: absolute;
-            width: 70%;
-            height: 70%;
-            border: 2px solid rgba(255,255,255,0.4);
-            border-radius: 50%;
-        }
-
-        .bingo-cell.free-space {
-            font-size: 0.75rem;
-            color: var(--gold);
-            text-transform: uppercase;
-            text-align: center;
-        }
-
-        .game-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* Notifications & Alerts */
-        .alert-banner {
-            background-color: var(--gold);
-            color: #0f172a;
-            padding: 1rem;
-            border-radius: 8px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            display: none;
-            animation: flash 1s infinite alternate;
-        }
-
-        @keyframes flash {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.02); }
-        }
+        input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
+        input[type="text"]:focus { outline: 2px solid var(--primary); }
+        .host-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
+        @media (max-width: 768px) { .host-layout { grid-template-columns: 1fr; } }
+        .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); }
+        .ball { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%); color: #0f172a; font-size: 3.5rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 1rem; }
+        .tracker-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 0.35rem; margin-top: 1rem; }
+        .tracker-cell { background-color: var(--dark-bg); border: 1px solid var(--border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
+        .tracker-cell.called { background-color: var(--success); color: white; border-color: transparent; box-shadow: 0 0 8px rgba(22, 163, 74, 0.4); }
+        .bingo-board-container { max-width: 550px; margin: 0 auto; }
+        .bingo-headers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 0.5rem; }
+        .bingo-header { font-size: 1.75rem; font-weight: 900; color: var(--gold); }
+        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+        .bingo-cell { background-color: var(--dark-bg); border: 2px solid var(--border); aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; cursor: pointer; user-select: none; }
+        .bingo-cell.marked { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); border-color: transparent; color: white; position: relative; }
+        .bingo-cell.marked::after { content: ''; position: absolute; width: 70%; height: 70%; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; }
+        .bingo-cell.free-space { font-size: 0.75rem; color: var(--gold); text-transform: uppercase; text-align: center; }
+        .game-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .alert-banner { background-color: var(--gold); color: #0f172a; padding: 1rem; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: none; }
+        .status-text { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>BINGO SYSTEMS Engine</h1>
-            <p>Cryptographically Secure Cross-Validating Infrastructure</p>
+            <h1>P2P BINGO ENGINE</h1>
+            <p>Cross-Device Real-Time Synchronization Protocol</p>
         </header>
 
         <div id="alertBanner" class="alert-banner"></div>
 
+        <!-- SCREEN 1: Connection Setup -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
                 <div class="card">
-                    <h2>Host/Caller Instance</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a brand new game session token and broadcast live telemetry.</p>
-                    <button class="btn btn-primary" style="width: 100%;" onclick="initHost()">Generate New Session</button>
+                    <h2>Host New Room</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a master network signal to broadcast live number draws.</p>
+                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="initHostRoom()">Initialize Master Node</button>
+                    <div id="hostStatus" class="status-text"></div>
                 </div>
 
                 <div class="card">
-                    <h2>Join Existing Session</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Enter secure matching game room signature coordinates to load validation payload.</p>
-                    <input type="text" id="joinGameCode" placeholder="ENTER GAME CODE" maxlength="6">
-                    <button class="btn btn-success" style="width: 100%;" onclick="initPlayer()">Sync Game Session</button>
+                    <h2>Join Remote Room</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Enter the Host's custom Game Code signature to pipe live matrix streams.</p>
+                    <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT CODE" maxlength="5">
+                    <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="initPlayerRoom()">Connect To Node</button>
+                    <div id="playerStatus" class="status-text"></div>
                 </div>
             </div>
         </div>
 
+        <!-- SCREEN 2: Host Live Panel -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Session Token: <strong id="hostCodeDisplay" style="color: var(--primary);">------</strong></div>
-                <div>Numbers Pool Traversed: <strong id="drawnCount">0</strong>/75</div>
+                <div>Game Broadcast Code: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.2rem;">-----</strong></div>
+                <div>Pool Extracted: <strong id="drawnCount">0</strong>/75</div>
             </div>
             <div class="host-layout">
                 <div class="card">
                     <div class="current-number-display">
                         <div id="ballDisplay" class="ball">--</div>
-                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting Initialization</h3>
+                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting Loop Start</h3>
                     </div>
-                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="drawNextNumber()">Draw Next Index Vector</button>
+                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="drawNextNumber()">Draw Next Vector</button>
                 </div>
                 <div class="card">
-                    <h3>Tracking Matrix Structure</h3>
+                    <h3>Active Broadcaster Board Matrix</h3>
                     <div id="trackerGrid" class="tracker-grid"></div>
                 </div>
             </div>
         </div>
 
+        <!-- SCREEN 3: Player Active Matrix -->
         <div id="playerScreen" class="screen">
             <div class="bingo-board-container">
                 <div class="game-meta">
-                    <div>Connected Token: <strong id="playerCodeDisplay" style="color: var(--success);">------</strong></div>
-                    <button class="btn btn-danger" onclick="claimBingo()">Claim BINGO!</button>
+                    <div>Connected Sync Node: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
+                    <button class="btn btn-danger" onclick="claimBingo()">Call BINGO!</button>
                 </div>
                 <div class="card">
                     <div class="bingo-headers">
@@ -358,19 +130,17 @@
     </div>
 
     <script>
-        // --- Runtime Engineering State Architecture ---
-        let gameState = {
-            role: null,           // 'host' or 'player'
-            gameCode: '',         // Unique alphanumeric channel key
-            drawnNumbers: [],     // Server-authoritative array of drawn integer indices
-            cardMatrix: [],       // 5x5 Matrix parsing standard values
-            markedCoordinates: [] // Player coordinate mapping states [r, c]
-        };
+        let peer = null;
+        let connections = []; // Host uses this to track linked clients
+        let hostConnection = null; // Client uses this to track upstream master node
 
-        // --- Core Helpers ---
-        function generateRandomCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
+        let gameState = {
+            role: null,
+            gameCode: '',
+            drawnNumbers: [],
+            cardMatrix: [],
+            markedCoordinates: [[2, 2]] // Init free space
+        };
 
         function getBingoLetter(num) {
             if (num <= 15) return 'B';
@@ -387,41 +157,49 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- Cross-Tab Interoperability Engine ---
-        // Simulates true full-duplex network architecture via reactive shared localStorage tracking
-        function syncTelemetryOut() {
-            localStorage.setItem(`bingo_session_${gameState.gameCode}`, JSON.stringify({
-                drawnNumbers: gameState.drawnNumbers,
-                timestamp: Date.now()
-            }));
-        }
+        // --- HOST LOGIC BRANCH ---
+        function initHostRoom() {
+            document.getElementById('hostStatus').innerText = "Connecting to signaling cloud server...";
+            document.getElementById('hostBtn').disabled = true;
 
-        function listenToTelemetryIn() {
-            window.addEventListener('storage', (e) => {
-                if (e.key === `bingo_session_${gameState.gameCode}`) {
-                    const data = JSON.parse(e.newValue);
-                    gameState.drawnNumbers = data.drawnNumbers;
-                }
-                if (e.key === `bingo_win_event_${gameState.gameCode}`) {
-                    const winPayload = JSON.parse(e.newValue);
-                    showAlert(`ALERT: Player [${winPayload.playerId}] has initialized a VALID BINGO sequence verification vector!`);
-                }
-            });
-        }
-
-        // --- Host Context Execution Flow ---
-        function initHost() {
-            gameState.role = 'host';
-            gameState.gameCode = generateRandomCode();
-            gameState.drawnNumbers = [];
+            // Generate human-friendly 5-digit room identifier code
+            const customRoomCode = Math.floor(10000 + Math.random() * 90000).toString();
             
-            document.getElementById('hostCodeDisplay').innerText = gameState.gameCode;
-            renderHostTrackerGrid();
-            syncTelemetryOut();
-            listenToTelemetryIn();
+            // Initialize P2P routing node
+            peer = new Peer(`BINGO-${customRoomCode}`);
 
-            document.getElementById('setupScreen').classList.remove('active');
-            document.getElementById('hostScreen').classList.add('active');
+            peer.on('open', (id) => {
+                gameState.role = 'host';
+                gameState.gameCode = customRoomCode;
+                document.getElementById('hostCodeDisplay').innerText = customRoomCode;
+                renderHostTrackerGrid();
+
+                document.getElementById('setupScreen').classList.remove('active');
+                document.getElementById('hostScreen').classList.add('active');
+            });
+
+            peer.on('connection', (conn) => {
+                connections.push(conn);
+                
+                // Immediately synchronize the joining client with existing drawn history
+                conn.on('open', () => {
+                    conn.send({ type: 'SYNC', drawnNumbers: gameState.drawnNumbers });
+                });
+
+                // Listen to incoming telemetry from players (e.g. Bingo validation claims)
+                conn.on('data', (data) => {
+                    if (data.type === 'CLAIM_BINGO') {
+                        processIncomingBingoClaim(data);
+                    }
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                alert("Network initialization failure. Try creating another room.");
+                document.getElementById('hostBtn').disabled = false;
+                document.getElementById('hostStatus').innerText = "";
+            });
         }
 
         function renderHostTrackerGrid() {
@@ -438,7 +216,7 @@
 
         function drawNextNumber() {
             if (gameState.drawnNumbers.length >= 75) {
-                showAlert("Full Matrix Depleted. Complete tracking pool extracted.");
+                showAlert("Full Matrix Depleted.");
                 return;
             }
 
@@ -449,52 +227,75 @@
 
             gameState.drawnNumbers.push(candidate);
             
-            // Visual Pipeline Mutation
-            const ball = document.getElementById('ballDisplay');
-            const letterSpan = document.getElementById('letterDisplay');
-            const letter = getBingoLetter(candidate);
-            
-            ball.innerText = candidate;
-            letterSpan.innerText = `${letter} - ${candidate}`;
-            
+            // Dom Mutations
+            document.getElementById('ballDisplay').innerText = candidate;
+            document.getElementById('letterDisplay').innerText = `${getBingoLetter(candidate)} - ${candidate}`;
             document.getElementById(`tracker-cell-${candidate}`).classList.add('called');
             document.getElementById('drawnCount').innerText = gameState.drawnNumbers.length;
 
-            syncTelemetryOut();
+            // Broadcast new vector state telemetry downstream to every connected peer device
+            connections.forEach(conn => {
+                if (conn.open) {
+                    conn.send({ type: 'DRAW', number: candidate, fullHistory: gameState.drawnNumbers });
+                }
+            });
         }
 
-        // --- Player Context Execution Flow ---
-        function initPlayer() {
-            const codeInput = document.getElementById('joinGameCode').value.trim().toUpperCase();
-            if (codeInput.length !== 6) {
-                alert("Invalid Session Signature Parameters.");
+        // --- PLAYER LOGIC BRANCH ---
+        function initPlayerRoom() {
+            const rawTargetCode = document.getElementById('joinGameCode').value.trim();
+            if (rawTargetCode.length !== 5) {
+                alert("Room identifier code must be exactly 5 digits.");
                 return;
             }
 
-            // Sync structural configuration verification payload
-            const sessionPayload = localStorage.getItem(`bingo_session_${codeInput}`);
-            if (!sessionPayload) {
-                alert("Game Session Instance Not Active in this memory buffer cluster.");
-                return;
-            }
+            document.getElementById('playerStatus').innerText = "Routing to remote network node...";
+            document.getElementById('joinBtn').disabled = true;
 
-            const parsed = JSON.parse(sessionPayload);
-            gameState.role = 'player';
-            gameState.gameCode = codeInput;
-            gameState.drawnNumbers = parsed.drawnNumbers;
-            gameState.markedCoordinates = [[2, 2]]; // Default Free space initialization
+            // Instantiates client peer with transient random cloud signature
+            peer = new Peer();
 
-            document.getElementById('playerCodeDisplay').innerText = gameState.gameCode;
-            generateDeterministicCard();
-            renderPlayerGrid();
-            listenToTelemetryIn();
+            peer.on('open', (id) => {
+                // Pipe link path out to host
+                hostConnection = peer.connect(`BINGO-${rawTargetCode}`);
 
-            document.getElementById('setupScreen').classList.remove('active');
-            document.getElementById('playerScreen').classList.add('active');
+                hostConnection.on('open', () => {
+                    gameState.role = 'player';
+                    gameState.gameCode = rawTargetCode;
+                    document.getElementById('playerCodeDisplay').innerText = rawTargetCode;
+                    
+                    generateDeterministicCard();
+                    renderPlayerGrid();
+
+                    document.getElementById('setupScreen').classList.remove('active');
+                    document.getElementById('playerScreen').classList.add('active');
+                });
+
+                // Read real-time inbound streams from Host machine
+                hostConnection.on('data', (data) => {
+                    if (data.type === 'SYNC') {
+                        gameState.drawnNumbers = data.drawnNumbers;
+                    } else if (data.type === 'DRAW') {
+                        gameState.drawnNumbers = data.fullHistory;
+                        // Light flash notification logic could be hooked here
+                    }
+                });
+
+                hostConnection.on('close', () => {
+                    alert("Master Host node connection dropped. Room terminated.");
+                    window.location.reload();
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                alert("Could not locate active host session matching that code. Check signature layout.");
+                document.getElementById('joinBtn').disabled = false;
+                document.getElementById('playerStatus').innerText = "";
+            });
         }
 
         function generateDeterministicCard() {
-            // Build standard mathematical columns arrays matching validation matrices
             const pools = {
                 B: Array.from({length: 15}, (_, i) => i + 1),
                 I: Array.from({length: 15}, (_, i) => i + 16),
@@ -503,17 +304,15 @@
                 O: Array.from({length: 15}, (_, i) => i + 61)
             };
 
-            // Shuffle sub-columns mapping
             const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
             Object.keys(pools).forEach(k => shuffle(pools[k]));
 
-            // Build structural 5x5 2D matrix
             gameState.cardMatrix = [];
             for (let row = 0; row < 5; row++) {
                 gameState.cardMatrix[row] = [];
                 gameState.cardMatrix[row][0] = pools.B[row];
                 gameState.cardMatrix[row][1] = pools.I[row];
-                gameState.cardMatrix[row][2] = (row === 2) ? 0 : pools.N[row]; // Force free space index coordinate mapping
+                gameState.cardMatrix[row][2] = (row === 2) ? 0 : pools.N[row];
                 gameState.cardMatrix[row][3] = pools.G[row];
                 gameState.cardMatrix[row][4] = pools.O[row];
             }
@@ -522,7 +321,6 @@
         function renderPlayerGrid() {
             const grid = document.getElementById('bingoGrid');
             grid.innerHTML = '';
-
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 5; c++) {
                     const cellVal = gameState.cardMatrix[r][c];
@@ -542,16 +340,10 @@
         }
 
         function handleCellInteraction(r, c, val, element) {
-            // Fetch newest execution frame array from shared state storage layer to avoid stale assertions
-            const sessionPayload = localStorage.getItem(`bingo_session_${gameState.gameCode}`);
-            if (sessionPayload) {
-                gameState.drawnNumbers = JSON.parse(sessionPayload).drawnNumbers;
-            }
-
-            // SERVER-SIDE SECURITY EMULATION VERIFICATION LOOP
-            // Validates value state strictly against real engine drawn matrix sequence arrays
+            // AUTHORITATIVE VERIFICATION FRAME
+            // Rejects check attempts if host network has not processed number emission payload
             if (!gameState.drawnNumbers.includes(val)) {
-                alert(`Security Violation Event: Selected value index [${val}] has not been broadcasted by Host.`);
+                alert(`Rule Restriction: Number [${val}] has not been pulled by caller.`);
                 return;
             }
 
@@ -565,49 +357,66 @@
             }
         }
 
-        // --- Cryptographic Win Verification Mathematical Layer ---
+        // --- INTER-NETWORK WIN VALIDATION PROTOCOL ---
         function claimBingo() {
-            // Build virtual execution matrix mapping matching checks
             let verificationMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
-            
-            // Hydrate verified points tracking indices configuration
-            gameState.markedCoordinates.forEach(([r, c]) => {
-                verificationMatrix[r][c] = true;
-            });
+            gameState.markedCoordinates.forEach(([r, c]) => { verificationMatrix[r][c] = true; });
 
-            let winDetected = false;
+            let localWinVerification = false;
 
-            // 1. Evaluate horizontal planes vectors
-            for (let r = 0; r < 5; r++) {
-                if (verificationMatrix[r].every(cell => cell === true)) winDetected = true;
-            }
-
-            // 2. Evaluate vertical columns planes vectors
+            // Rows
+            for (let r = 0; r < 5; r++) { if (verificationMatrix[r].every(cell => cell === true)) localWinVerification = true; }
+            // Columns
             for (let c = 0; c < 5; c++) {
                 let colWin = true;
-                for (let r = 0; r < 5; r++) {
-                    if (!verificationMatrix[r][c]) colWin = false;
-                }
-                if (colWin) winDetected = true;
+                for (let r = 0; r < 5; r++) { if (!verificationMatrix[r][c]) colWin = false; }
+                if (colWin) localWinVerification = true;
             }
-
-            // 3. Evaluate downward and upward angle intercept diagonals
-            let diag1 = true, diag2 = true;
+            // Diagonals
+            let d1 = true, d2 = true;
             for (let i = 0; i < 5; i++) {
-                if (!verificationMatrix[i][i]) diag1 = false;
-                if (!verificationMatrix[i][4 - i]) diag2 = false;
+                if (!verificationMatrix[i][i]) d1 = false;
+                if (!verificationMatrix[i][4 - i]) d2 = false;
             }
-            if (diag1 || diag2) winDetected = true;
+            if (d1 || d2) localWinVerification = true;
 
-            if (winDetected) {
-                const uniquePlayerId = Math.floor(1000 + Math.random() * 9000);
-                localStorage.setItem(`bingo_win_event_${gameState.gameCode}`, JSON.stringify({
-                    playerId: uniquePlayerId,
-                    gameCode: gameState.gameCode
-                }));
-                showAlert("WIN CAPTURE TRANSMITTED! Waiting host confirmation clearance...");
+            if (localWinVerification) {
+                // Package structural map configuration verification metrics back upstream to Caller
+                hostConnection.send({
+                    type: 'CLAIM_BINGO',
+                    playerPeerId: peer.id,
+                    boardSnapshot: gameState.cardMatrix,
+                    markedCoordinatesSnapshot: gameState.markedCoordinates
+                });
+                showAlert("Bingo verification block transmitted upstream. Standing by for confirmation.");
             } else {
-                alert("Validation Failure: Selected tracking nodes do not display completed rows, columns, or diagonals matrices patterns.");
+                alert("Invalid Structural Call: Current checked metrics do not form a complete matching lane matrix.");
+            }
+        }
+
+        function processIncomingBingoClaim(payload) {
+            // HOST-SIDE VALIDATION SAFETY WRAPPER
+            // Recalculates and proves user configuration assertion patterns against master host array pool
+            let verifyMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
+            let computationalProofValid = true;
+
+            payload.markedCoordinatesSnapshot.forEach(([r, c]) => {
+                if (r === 2 && c === 2) {
+                    verifyMatrix[r][c] = true; // Free pass coordinate approved
+                    return;
+                }
+                const targetNum = payload.boardSnapshot[r][c];
+                // If a user marked a number that the host never actually generated, drop structural validity state
+                if (!gameState.drawnNumbers.includes(targetNum)) {
+                    computationalProofValid = false;
+                }
+                verifyMatrix[r][c] = true;
+            });
+
+            if (computationalProofValid) {
+                showAlert(`BINGO CONFIRMED! Player node identity [${payload.playerPeerId.substring(0,6)}] has proven pattern sequence!`);
+            } else {
+                console.warn("Rejected malicious or desynchronized client claim vector structure.");
             }
         }
     </script>
