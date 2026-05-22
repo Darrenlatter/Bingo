@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Distributed Network Bingo</title>
-    <!-- Import PeerJS for cloud-brokered direct device connections -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <title>Global P2P Bingo Multi-Device Engine</title>
+    <!-- External WebRTC Signalling Link -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -32,10 +32,11 @@
         .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-primary:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-success { background-color: var(--success); color: white; }
+        .btn-success:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; }
-        input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
+        input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1.25rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
         input[type="text"]:focus { outline: 2px solid var(--primary); }
         .host-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
         @media (max-width: 768px) { .host-layout { grid-template-columns: 1fr; } }
@@ -54,66 +55,68 @@
         .bingo-cell.free-space { font-size: 0.75rem; color: var(--gold); text-transform: uppercase; text-align: center; }
         .game-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
         .alert-banner { background-color: var(--gold); color: #0f172a; padding: 1rem; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: none; }
-        .status-text { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; }
+        .status-tracker { background-color: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>P2P BINGO ENGINE</h1>
-            <p>Cross-Device Real-Time Synchronization Protocol</p>
+            <h1>GLOBAL P2P BINGO</h1>
+            <p>Direct Cross-Device Network Connection</p>
         </header>
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <!-- SCREEN 1: Connection Setup -->
+        <!-- SCREEN 1: Role Setup Selection -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
+                <!-- Host Initialization -->
                 <div class="card">
-                    <h2>Host New Room</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a master network signal to broadcast live number draws.</p>
-                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="initHostRoom()">Initialize Master Node</button>
-                    <div id="hostStatus" class="status-text"></div>
+                    <h2>Host Panel</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Act as the primary room node. Draws numbers and broadcasts telemetry.</p>
+                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="startHostNode()">Create Host Room</button>
+                    <div id="hostStatus" class="status-tracker">Status: Ready to initialize</div>
                 </div>
 
+                <!-- Player Connection -->
                 <div class="card">
-                    <h2>Join Remote Room</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Enter the Host's custom Game Code signature to pipe live matrix streams.</p>
+                    <h2>Player Panel</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Connect directly to a host room across any network or device via room token.</p>
                     <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT CODE" maxlength="5">
-                    <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="initPlayerRoom()">Connect To Node</button>
-                    <div id="playerStatus" class="status-text"></div>
+                    <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectToHostNode()">Join Host Room</button>
+                    <div id="playerStatus" class="status-tracker">Status: Awaiting input parameters</div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: Host Live Panel -->
+        <!-- SCREEN 2: Authoritative Host Board -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Game Broadcast Code: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.2rem;">-----</strong></div>
-                <div>Pool Extracted: <strong id="drawnCount">0</strong>/75</div>
+                <div>Broadcasting Code: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
+                <div>Numbers Pulled: <strong id="drawnCount">0</strong>/75</div>
             </div>
             <div class="host-layout">
                 <div class="card">
                     <div class="current-number-display">
                         <div id="ballDisplay" class="ball">--</div>
-                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting Loop Start</h3>
+                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting First Draw</h3>
                     </div>
-                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="drawNextNumber()">Draw Next Vector</button>
+                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="generateNextNumber()">Draw Number</button>
                 </div>
                 <div class="card">
-                    <h3>Active Broadcaster Board Matrix</h3>
+                    <h3>Master Telemetry Matrix Grid</h3>
                     <div id="trackerGrid" class="tracker-grid"></div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 3: Player Active Matrix -->
+        <!-- SCREEN 3: Player Card Grid -->
         <div id="playerScreen" class="screen">
             <div class="bingo-board-container">
                 <div class="game-meta">
-                    <div>Connected Sync Node: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
-                    <button class="btn btn-danger" onclick="claimBingo()">Call BINGO!</button>
+                    <div>Connected to Room: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
+                    <button class="btn btn-danger" onclick="executeBingoClaim()">Call BINGO!</button>
                 </div>
                 <div class="card">
                     <div class="bingo-headers">
@@ -130,293 +133,292 @@
     </div>
 
     <script>
-        let peer = null;
-        let connections = []; // Host uses this to track linked clients
-        let hostConnection = null; // Client uses this to track upstream master node
+        // --- System State Globals ---
+        let p2pInstance = null;
+        let streamingChannels = []; // Host client router lists
+        let backboneChannel = null;  // Player link pipeline out
 
-        let gameState = {
+        let localEngineState = {
             role: null,
-            gameCode: '',
-            drawnNumbers: [],
-            cardMatrix: [],
-            markedCoordinates: [[2, 2]] // Init free space
+            roomCode: '',
+            calledNumbersList: [],
+            cardDataMatrix: [],
+            activeMarks: [[2, 2]] // Start with centered FREE space checked
         };
 
-        function getBingoLetter(num) {
-            if (num <= 15) return 'B';
-            if (num <= 30) return 'I';
-            if (num <= 45) return 'N';
-            if (num <= 60) return 'G';
+        function getBingoColumnLetter(value) {
+            if (value <= 15) return 'B';
+            if (value <= 30) return 'I';
+            if (value <= 45) return 'N';
+            if (value <= 60) return 'G';
             return 'O';
         }
 
-        function showAlert(msg) {
-            const banner = document.getElementById('alertBanner');
-            banner.innerText = msg;
-            banner.style.display = 'block';
+        function triggerUINotification(message) {
+            const displayBanner = document.getElementById('alertBanner');
+            displayBanner.innerText = message;
+            displayBanner.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- HOST LOGIC BRANCH ---
-        function initHostRoom() {
-            document.getElementById('hostStatus').innerText = "Connecting to signaling cloud server...";
+        // --- HOST SIDE TELEMETRY CONTROLS ---
+        function startHostNode() {
+            document.getElementById('hostStatus').innerText = "Status: Provisioning cloud peer registration...";
             document.getElementById('hostBtn').disabled = true;
 
-            // Generate human-friendly 5-digit room identifier code
-            const customRoomCode = Math.floor(10000 + Math.random() * 90000).toString();
+            // Generate a true isolated random 5 digit room key
+            const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
             
-            // Initialize P2P routing node
-            peer = new Peer(`BINGO-${customRoomCode}`);
+            p2pInstance = new Peer(`ROOM-${uniqueRoomKey}`);
 
-            peer.on('open', (id) => {
-                gameState.role = 'host';
-                gameState.gameCode = customRoomCode;
-                document.getElementById('hostCodeDisplay').innerText = customRoomCode;
-                renderHostTrackerGrid();
+            p2pInstance.on('open', (id) => {
+                localEngineState.role = 'host';
+                localEngineState.roomCode = uniqueRoomKey;
+                document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
+                buildHostTrackingGrid();
 
                 document.getElementById('setupScreen').classList.remove('active');
                 document.getElementById('hostScreen').classList.add('active');
             });
 
-            peer.on('connection', (conn) => {
-                connections.push(conn);
+            p2pInstance.on('connection', (incomingChannel) => {
+                streamingChannels.push(incomingChannel);
                 
-                // Immediately synchronize the joining client with existing drawn history
-                conn.on('open', () => {
-                    conn.send({ type: 'SYNC', drawnNumbers: gameState.drawnNumbers });
+                incomingChannel.on('open', () => {
+                    // Instantly seed joining client with absolute global state
+                    incomingChannel.send({ 
+                        actionType: 'INITIAL_STATE_SYNC', 
+                        historyLog: localEngineState.calledNumbersList 
+                    });
                 });
 
-                // Listen to incoming telemetry from players (e.g. Bingo validation claims)
-                conn.on('data', (data) => {
-                    if (data.type === 'CLAIM_BINGO') {
-                        processIncomingBingoClaim(data);
+                incomingChannel.on('data', (incomingDataPayload) => {
+                    if (incomingDataPayload.actionType === 'TRANSMIT_BINGO_CLAIM') {
+                        evaluateIncomingBingoClaim(incomingDataPayload);
                     }
                 });
             });
 
-            peer.on('error', (err) => {
-                console.error(err);
-                alert("Network initialization failure. Try creating another room.");
+            p2pInstance.on('error', (err) => {
+                console.error("Peer Error:", err);
+                alert("Signaling conflict or cloud response failure. Resetting client engine.");
                 document.getElementById('hostBtn').disabled = false;
-                document.getElementById('hostStatus').innerText = "";
+                document.getElementById('hostStatus').innerText = "Status: Error. Retrying connection standard...";
             });
         }
 
-        function renderHostTrackerGrid() {
-            const container = document.getElementById('trackerGrid');
-            container.innerHTML = '';
-            for (let i = 1; i <= 75; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'tracker-cell';
-                cell.id = `tracker-cell-${i}`;
-                cell.innerText = i;
-                container.appendChild(cell);
+        function buildHostTrackingGrid() {
+            const referenceGridElement = document.getElementById('trackerGrid');
+            referenceGridElement.innerHTML = '';
+            for (let index = 1; index <= 75; index++) {
+                const matrixNode = document.createElement('div');
+                matrixNode.className = 'tracker-cell';
+                matrixNode.id = `host-track-node-${index}`;
+                matrixNode.innerText = index;
+                referenceGridElement.appendChild(matrixNode);
             }
         }
 
-        function drawNextNumber() {
-            if (gameState.drawnNumbers.length >= 75) {
-                showAlert("Full Matrix Depleted.");
+        function generateNextNumber() {
+            if (localEngineState.calledNumbersList.length >= 75) {
+                triggerUINotification("Game Loop Terminated. Entire field exhausted.");
                 return;
             }
 
-            let candidate;
+            let randomSelection;
             do {
-                candidate = Math.floor(Math.random() * 75) + 1;
-            } while (gameState.drawnNumbers.includes(candidate));
+                randomSelection = Math.floor(Math.random() * 75) + 1;
+            } while (localEngineState.calledNumbersList.includes(randomSelection));
 
-            gameState.drawnNumbers.push(candidate);
+            localEngineState.calledNumbersList.push(randomSelection);
             
-            // Dom Mutations
-            document.getElementById('ballDisplay').innerText = candidate;
-            document.getElementById('letterDisplay').innerText = `${getBingoLetter(candidate)} - ${candidate}`;
-            document.getElementById(`tracker-cell-${candidate}`).classList.add('called');
-            document.getElementById('drawnCount').innerText = gameState.drawnNumbers.length;
+            document.getElementById('ballDisplay').innerText = randomSelection;
+            document.getElementById('letterDisplay').innerText = `${getBingoColumnLetter(randomSelection)} - ${randomSelection}`;
+            document.getElementById(`host-track-node-${randomSelection}`).classList.add('called');
+            document.getElementById('drawnCount').innerText = localEngineState.calledNumbersList.length;
 
-            // Broadcast new vector state telemetry downstream to every connected peer device
-            connections.forEach(conn => {
-                if (conn.open) {
-                    conn.send({ type: 'DRAW', number: candidate, fullHistory: gameState.drawnNumbers });
+            // Broadcast matrix emission mutation out to all global connections
+            streamingChannels.forEach(channel => {
+                if (channel.open) {
+                    channel.send({ 
+                        actionType: 'EMIT_NUMBER_DRAW', 
+                        drawnValue: randomSelection, 
+                        historyLog: localEngineState.calledNumbersList 
+                    });
                 }
             });
         }
 
-        // --- PLAYER LOGIC BRANCH ---
-        function initPlayerRoom() {
-            const rawTargetCode = document.getElementById('joinGameCode').value.trim();
-            if (rawTargetCode.length !== 5) {
-                alert("Room identifier code must be exactly 5 digits.");
+        // --- PLAYER CARD INTERACTIVE LOGIC ---
+        function connectToHostNode() {
+            const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
+            if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
+                alert("System Alert: Connection coordinates must match exactly a 5-digit number configuration.");
                 return;
             }
 
-            document.getElementById('playerStatus').innerText = "Routing to remote network node...";
+            document.getElementById('playerStatus').innerText = "Status: Locating remote node route...";
             document.getElementById('joinBtn').disabled = true;
 
-            // Instantiates client peer with transient random cloud signature
-            peer = new Peer();
+            p2pInstance = new Peer();
 
-            peer.on('open', (id) => {
-                // Pipe link path out to host
-                hostConnection = peer.connect(`BINGO-${rawTargetCode}`);
+            p2pInstance.on('open', (assignedGlobalId) => {
+                backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`);
 
-                hostConnection.on('open', () => {
-                    gameState.role = 'player';
-                    gameState.gameCode = rawTargetCode;
-                    document.getElementById('playerCodeDisplay').innerText = rawTargetCode;
+                backboneChannel.on('open', () => {
+                    localEngineState.role = 'player';
+                    localEngineState.roomCode = targetedCodeInput;
+                    document.getElementById('playerCodeDisplay').innerText = targetedCodeInput;
                     
-                    generateDeterministicCard();
-                    renderPlayerGrid();
+                    generateRandomBingoMatrix();
+                    drawInteractivePlayerGrid();
 
                     document.getElementById('setupScreen').classList.remove('active');
                     document.getElementById('playerScreen').classList.add('active');
                 });
 
-                // Read real-time inbound streams from Host machine
-                hostConnection.on('data', (data) => {
-                    if (data.type === 'SYNC') {
-                        gameState.drawnNumbers = data.drawnNumbers;
-                    } else if (data.type === 'DRAW') {
-                        gameState.drawnNumbers = data.fullHistory;
-                        // Light flash notification logic could be hooked here
+                backboneChannel.on('data', (incomingBroadcast) => {
+                    if (incomingBroadcast.actionType === 'INITIAL_STATE_SYNC') {
+                        localEngineState.calledNumbersList = incomingBroadcast.historyLog;
+                    } else if (incomingBroadcast.actionType === 'EMIT_NUMBER_DRAW') {
+                        localEngineState.calledNumbersList = incomingBroadcast.historyLog;
                     }
                 });
 
-                hostConnection.on('close', () => {
-                    alert("Master Host node connection dropped. Room terminated.");
+                backboneChannel.on('close', () => {
+                    alert("Loss of upstream sync. Host terminated connection channel pipeline.");
                     window.location.reload();
                 });
             });
 
-            peer.on('error', (err) => {
-                console.error(err);
-                alert("Could not locate active host session matching that code. Check signature layout.");
+            p2pInstance.on('error', (err) => {
+                console.error("Client side peer error:", err);
+                alert("Network Routing Failure: Room code not found on the live global cloud server.");
                 document.getElementById('joinBtn').disabled = false;
-                document.getElementById('playerStatus').innerText = "";
+                document.getElementById('playerStatus').innerText = "Status: Connection Refused";
             });
         }
 
-        function generateDeterministicCard() {
-            const pools = {
-                B: Array.from({length: 15}, (_, i) => i + 1),
-                I: Array.from({length: 15}, (_, i) => i + 16),
-                N: Array.from({length: 15}, (_, i) => i + 31),
-                G: Array.from({length: 15}, (_, i) => i + 46),
-                O: Array.from({length: 15}, (_, i) => i + 61)
+        function generateRandomBingoMatrix() {
+            const coordinatePools = {
+                B: Array.from({length: 15}, (_, v) => v + 1),
+                I: Array.from({length: 15}, (_, v) => v + 16),
+                N: Array.from({length: 15}, (_, v) => v + 31),
+                G: Array.from({length: 15}, (_, v) => v + 46),
+                O: Array.from({length: 15}, (_, v) => v + 61)
             };
 
-            const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
-            Object.keys(pools).forEach(k => shuffle(pools[k]));
+            const randomizeArrayOrder = (targetArray) => targetArray.sort(() => Math.random() - 0.5);
+            Object.keys(coordinatePools).forEach(key => randomizeArrayOrder(coordinatePools[key]));
 
-            gameState.cardMatrix = [];
-            for (let row = 0; row < 5; row++) {
-                gameState.cardMatrix[row] = [];
-                gameState.cardMatrix[row][0] = pools.B[row];
-                gameState.cardMatrix[row][1] = pools.I[row];
-                gameState.cardMatrix[row][2] = (row === 2) ? 0 : pools.N[row];
-                gameState.cardMatrix[row][3] = pools.G[row];
-                gameState.cardMatrix[row][4] = pools.O[row];
+            localEngineState.cardDataMatrix = [];
+            for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
+                localEngineState.cardDataMatrix[rowIdx] = [];
+                localEngineState.cardDataMatrix[rowIdx][0] = coordinatePools.B[rowIdx];
+                localEngineState.cardDataMatrix[rowIdx][1] = coordinatePools.I[rowIdx];
+                localEngineState.cardDataMatrix[rowIdx][2] = (rowIdx === 2) ? 0 : coordinatePools.N[rowIdx];
+                localEngineState.cardDataMatrix[rowIdx][3] = coordinatePools.G[rowIdx];
+                localEngineState.cardDataMatrix[rowIdx][4] = coordinatePools.O[rowIdx];
             }
         }
 
-        function renderPlayerGrid() {
-            const grid = document.getElementById('bingoGrid');
-            grid.innerHTML = '';
+        function drawInteractivePlayerGrid() {
+            const visualGridContainer = document.getElementById('bingoGrid');
+            visualGridContainer.innerHTML = '';
+            
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 5; c++) {
-                    const cellVal = gameState.cardMatrix[r][c];
-                    const element = document.createElement('div');
-                    element.className = 'bingo-cell';
+                    const structuralValue = localEngineState.cardDataMatrix[r][c];
+                    const gridCellElement = document.createElement('div');
+                    gridCellElement.className = 'bingo-cell';
                     
                     if (r === 2 && c === 2) {
-                        element.classList.add('marked', 'free-space');
-                        element.innerText = "FREE";
+                        gridCellElement.classList.add('marked', 'free-space');
+                        gridCellElement.innerText = "FREE";
                     } else {
-                        element.innerText = cellVal;
-                        element.onclick = () => handleCellInteraction(r, c, cellVal, element);
+                        gridCellElement.innerText = structuralValue;
+                        gridCellElement.onclick = () => interceptCellMarkAction(r, c, structuralValue, gridCellElement);
                     }
-                    grid.appendChild(element);
+                    visualGridContainer.appendChild(gridCellElement);
                 }
             }
         }
 
-        function handleCellInteraction(r, c, val, element) {
-            // AUTHORITATIVE VERIFICATION FRAME
-            // Rejects check attempts if host network has not processed number emission payload
-            if (!gameState.drawnNumbers.includes(val)) {
-                alert(`Rule Restriction: Number [${val}] has not been pulled by caller.`);
+        function interceptCellMarkAction(row, col, evaluatedValue, domElement) {
+            // CRITICAL SYSTEM VALIDATION INTERCEPT
+            // Restricts toggle state changes unless number matches active server pool
+            if (!localEngineState.calledNumbersList.includes(evaluatedValue)) {
+                alert(`Rule Exception: Number [${evaluatedValue}] hasn't been pulled yet. Nice try!`);
                 return;
             }
 
-            const coordMatchIndex = gameState.markedCoordinates.findIndex(coord => coord[0] === r && coord[1] === c);
-            if (coordMatchIndex > -1) {
-                gameState.markedCoordinates.splice(coordMatchIndex, 1);
-                element.classList.remove('marked');
+            const activeIndexPosition = localEngineState.activeMarks.findIndex(pt => pt[0] === row && pt[1] === col);
+            if (activeIndexPosition > -1) {
+                localEngineState.activeMarks.splice(activeIndexPosition, 1);
+                domElement.classList.remove('marked');
             } else {
-                gameState.markedCoordinates.push([r, c]);
-                element.classList.add('marked');
+                localEngineState.activeMarks.push([row, col]);
+                domElement.classList.add('marked');
             }
         }
 
-        // --- INTER-NETWORK WIN VALIDATION PROTOCOL ---
-        function claimBingo() {
-            let verificationMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
-            gameState.markedCoordinates.forEach(([r, c]) => { verificationMatrix[r][c] = true; });
+        // --- DISTRIBUTED ARBITRATION VALIDATION LAYER ---
+        function executeBingoClaim() {
+            let computationalCheckField = Array(5).fill(0).map(() => Array(5).fill(false));
+            localEngineState.activeMarks.forEach(([r, c]) => { computationalCheckField[r][c] = true; });
 
-            let localWinVerification = false;
+            let matrixPatternConfirmed = false;
 
-            // Rows
-            for (let r = 0; r < 5; r++) { if (verificationMatrix[r].every(cell => cell === true)) localWinVerification = true; }
-            // Columns
+            // Horizontal verification sweep
+            for (let r = 0; r < 5; r++) { if (computationalCheckField[r].every(v => v === true)) matrixPatternConfirmed = true; }
+            // Vertical verification sweep
             for (let c = 0; c < 5; c++) {
-                let colWin = true;
-                for (let r = 0; r < 5; r++) { if (!verificationMatrix[r][c]) colWin = false; }
-                if (colWin) localWinVerification = true;
+                let verticalColumnValid = true;
+                for (let r = 0; r < 5; r++) { if (!computationalCheckField[r][c]) verticalColumnValid = false; }
+                if (verticalColumnValid) matrixPatternConfirmed = true;
             }
-            // Diagonals
-            let d1 = true, d2 = true;
-            for (let i = 0; i < 5; i++) {
-                if (!verificationMatrix[i][i]) d1 = false;
-                if (!verificationMatrix[i][4 - i]) d2 = false;
+            // Angular intersecting path checks
+            let backDiagValid = true, forwardDiagValid = true;
+            for (let idx = 0; idx < 5; idx++) {
+                if (!computationalCheckField[idx][idx]) backDiagValid = false;
+                if (!computationalCheckField[idx][4 - idx]) forwardDiagValid = false;
             }
-            if (d1 || d2) localWinVerification = true;
+            if (backDiagValid || forwardDiagValid) matrixPatternConfirmed = true;
 
-            if (localWinVerification) {
-                // Package structural map configuration verification metrics back upstream to Caller
-                hostConnection.send({
-                    type: 'CLAIM_BINGO',
-                    playerPeerId: peer.id,
-                    boardSnapshot: gameState.cardMatrix,
-                    markedCoordinatesSnapshot: gameState.markedCoordinates
+            if (matrixPatternConfirmed) {
+                backboneChannel.send({
+                    actionType: 'TRANSMIT_BINGO_CLAIM',
+                    senderPeerId: p2pInstance.id,
+                    boardLayoutSnapshot: localEngineState.cardDataMatrix,
+                    selectedCoordinateLogs: localEngineState.activeMarks
                 });
-                showAlert("Bingo verification block transmitted upstream. Standing by for confirmation.");
+                triggerUINotification("Bingo tracking payload transmitted to caller. Awaiting remote host authentication.");
             } else {
-                alert("Invalid Structural Call: Current checked metrics do not form a complete matching lane matrix.");
+                alert("Pattern Refused: The currently marked values do not complete a full row, column, or diagonal line.");
             }
         }
 
-        function processIncomingBingoClaim(payload) {
-            // HOST-SIDE VALIDATION SAFETY WRAPPER
-            // Recalculates and proves user configuration assertion patterns against master host array pool
-            let verifyMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
-            let computationalProofValid = true;
+        function evaluateIncomingBingoClaim(payload) {
+            let serverSideCheckMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
+            let cryptographicProofPasses = true;
 
-            payload.markedCoordinatesSnapshot.forEach(([r, c]) => {
+            payload.selectedCoordinateLogs.forEach(([r, c]) => {
                 if (r === 2 && c === 2) {
-                    verifyMatrix[r][c] = true; // Free pass coordinate approved
+                    serverSideCheckMatrix[r][c] = true;
                     return;
                 }
-                const targetNum = payload.boardSnapshot[r][c];
-                // If a user marked a number that the host never actually generated, drop structural validity state
-                if (!gameState.drawnNumbers.includes(targetNum)) {
-                    computationalProofValid = false;
+                const correspondingValue = payload.boardLayoutSnapshot[r][c];
+                // Absolute truth cross-check
+                if (!localEngineState.calledNumbersList.includes(correspondingValue)) {
+                    cryptographicProofPasses = false;
                 }
-                verifyMatrix[r][c] = true;
+                serverSideCheckMatrix[r][c] = true;
             });
 
-            if (computationalProofValid) {
-                showAlert(`BINGO CONFIRMED! Player node identity [${payload.playerPeerId.substring(0,6)}] has proven pattern sequence!`);
+            if (cryptographicProofPasses) {
+                triggerUINotification(`🏆 BINGO CONFIRMED! Player device connected as [${payload.senderPeerId.substring(0, 5)}] has achieved a valid pattern line match!`);
             } else {
-                console.warn("Rejected malicious or desynchronized client claim vector structure.");
+                console.error("Security alert: Client failed authoritative validation loop.");
             }
         }
     </script>
