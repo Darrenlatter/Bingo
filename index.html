@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>90-BALL BINGO PRO ENGINE</title>
-    <!-- WebRTC Signalling Layer & Confetti Effects -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
+    <title>PRO 90-BALL BINGO MATRIX</title>
+    <!-- Confetti Effects Dependency -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -33,9 +32,7 @@
         .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-success { background-color: var(--success); color: white; }
-        .btn-success:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; }
         
         input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1.15rem; margin-bottom: 1rem; letter-spacing: 0.05em; text-align: center; }
@@ -89,7 +86,7 @@
     <div class="container">
         <header>
             <h1>PRO 90-BALL BINGO MATRIX</h1>
-            <p>Casino-Grade Multi-Stage P2P Engine with Hardened Handshake Framework</p>
+            <p>Casino-Grade Multi-Stage Engine (High-Stability Native Broadcast Engine)</p>
         </header>
 
         <div id="winnerBanner" class="winner-banner">
@@ -99,7 +96,7 @@
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <!-- SCREEN 1: Setup Architecture Selection -->
+        <!-- SCREEN 1: Connection Architecture Setup -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
                 <div class="card">
@@ -113,18 +110,18 @@
                     <h2>Join Active Room</h2>
                     <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Link ticket configuration matrices using a valid signature handle coordinate.</p>
                     <input type="text" id="playerNameInput" placeholder="ENTER YOUR NAME (OPTIONAL)" maxlength="20">
-                    <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT ROOM CODE" maxlength="5">
+                    <input type="text" id="joinGameCode" placeholder="ENTER ANY 5-DIGIT ROOM CODE" maxlength="5">
                     <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectTo90BallHost()">Connect Ticket Node</button>
                     <button id="recoveryBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; display:none;" onclick="attemptStateRecovery()">Recover Disconnected Board</button>
-                    <div id="playerStatus" class="status-tracker">Status: Awaiting coordinates</div>
+                    <div id="playerStatus" class="status-tracker">Status: Awaiting parameters</div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: Host Interface Matrix Dashboard -->
+        <!-- SCREEN 2: Host Dashboard Panel layout -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Broadcasting Token: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
+                <div>Active Room Token: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
                 <div>Active target pattern stage: <span id="hostStageBadge" class="stage-badge">1 LINE</span></div>
                 <div>Extracted Pool: <strong id="drawnCount">0</strong>/90</div>
                 <button class="btn btn-danger" onclick="triggerMasterReset()">Reset Entire Engine State</button>
@@ -200,9 +197,8 @@
             81: "Fat Lady with a Cane", 82: "Straight on Through", 83: "Time for Tea", 84: "Seven Dozen", 85: "Staying Alive", 86: "Between the Sticks", 87: "Torquay Ferry", 88: "Two Fat Ladies", 89: "Nearly There", 90: "Top of the Shop"
         };
 
-        let p2pInstance = null;
-        let streamingChannels = []; 
-        let backboneChannel = null;  
+        // --- NATIVE TELEMETRY CORE ROUTER BUS ---
+        let telemetryBus = null;
 
         let localEngineState = {
             role: null,
@@ -245,44 +241,33 @@
             if (pb) pb.innerText = localEngineState.gameStage;
         }
 
-        // --- HOST SYSTEM CORES ---
+        // --- HOST MANAGEMENT ROUTINES ---
         function start90BallHost() {
-            document.getElementById('hostStatus').innerText = "Status: Provisioning signaling path...";
-            document.getElementById('hostBtn').disabled = true;
-
             const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
-            p2pInstance = new Peer(`ROOM-${uniqueRoomKey}`);
+            localEngineState.role = 'host';
+            localEngineState.roomCode = uniqueRoomKey;
+            document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
+            build90BallTrackingGrid();
 
-            p2pInstance.on('open', () => {
-                localEngineState.role = 'host';
-                localEngineState.roomCode = uniqueRoomKey;
-                document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
-                build90BallTrackingGrid();
-                document.getElementById('setupScreen').classList.remove('active');
-                document.getElementById('hostScreen').classList.add('active');
-            });
-
-            p2pInstance.on('connection', (incomingChannel) => {
-                streamingChannels.push(incomingChannel);
-                incomingChannel.on('open', () => {
-                    incomingChannel.send({ 
-                        actionType: 'INITIAL_STATE_SYNC', 
+            // Open standalone high-stability native memory interface mapping channel
+            telemetryBus = new BroadcastChannel(`BINGO_ROOM_${uniqueRoomKey}`);
+            
+            telemetryBus.onmessage = (event) => {
+                const payload = event.data;
+                if (payload.actionType === 'PLAYER_REQUEST_JOIN') {
+                    // Instantly sync the new player with host state parameters
+                    telemetryBus.postMessage({
+                        actionType: 'INITIAL_STATE_SYNC',
                         historyLog: localEngineState.calledNumbersList,
                         currentStage: localEngineState.gameStage
                     });
-                });
+                } else if (payload.actionType === 'TRANSMIT_BINGO_CLAIM') {
+                    evaluateIncomingBingoClaim(payload);
+                }
+            };
 
-                incomingChannel.on('data', (payload) => {
-                    if (payload.actionType === 'TRANSMIT_BINGO_CLAIM') evaluateIncomingBingoClaim(payload);
-                });
-            });
-
-            p2pInstance.on('error', (err) => {
-                console.error(err);
-                alert("Signaling pipeline fault. Reset system parameters.");
-                document.getElementById('hostBtn').disabled = false;
-                document.getElementById('hostStatus').innerText = "Status: Error";
-            });
+            document.getElementById('setupScreen').classList.remove('active');
+            document.getElementById('hostScreen').classList.add('active');
         }
 
         function build90BallTrackingGrid() {
@@ -323,14 +308,11 @@
                 window.speechSynthesis.speak(new SpeechSynthesisUtterance(callScript));
             }
 
-            streamingChannels.forEach(channel => {
-                if (channel.open) {
-                    channel.send({ 
-                        actionType: 'EMIT_NUMBER_DRAW', 
-                        drawnValue: randomSelection, 
-                        historyLog: localEngineState.calledNumbersList 
-                    });
-                }
+            // Sync Broadcast via native local system bus
+            telemetryBus.postMessage({ 
+                actionType: 'EMIT_NUMBER_DRAW', 
+                drawnValue: randomSelection, 
+                historyLog: localEngineState.calledNumbersList 
             });
         }
 
@@ -353,12 +335,10 @@
             document.getElementById('hist-3').innerText = '--';
             build90BallTrackingGrid();
 
-            streamingChannels.forEach(channel => {
-                if (channel.open) channel.send({ actionType: 'EXECUTE_ENGINE_RESET' });
-            });
+            telemetryBus.postMessage({ actionType: 'EXECUTE_ENGINE_RESET' });
         }
 
-        // --- HARDENED EVENT-DRIVEN PLAYER HANDSHAKE CHAIN ---
+        // --- NATIVE PLAYER CORE LAYER ---
         function connectTo90BallHost() {
             let nameInput = document.getElementById('playerNameInput').value.trim();
             const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
@@ -369,50 +349,29 @@
             }
             
             if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
-                alert("Room codes must consist of exactly 5 numeric keys.");
-                return;
+                return alert("Room codes must consist of exactly 5 numeric keys.");
             }
 
             localEngineState.playerName = nameInput;
-            document.getElementById('playerStatus').innerText = "Status: Registering with cloud broker...";
-            document.getElementById('joinBtn').disabled = true;
+            localEngineState.role = 'player';
+            localEngineState.roomCode = targetedCodeInput;
 
-            // Generate a transient, deterministic explicit client peer ID string mapping
-            const cleanPlayerIdToken = `PLAYER-${Math.floor(100000 + Math.random() * 900000)}`;
-            p2pInstance = new Peer(cleanPlayerIdToken);
+            document.getElementById('playerCodeDisplay').innerText = targetedCodeInput;
+            document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
 
-            // EVENT CHAIN STEP 1: Handshake with global server completes successfully
-            p2pInstance.on('open', (assignedId) => {
-                document.getElementById('playerStatus').innerText = "Status: Cloud registered! Opening direct data pipeline...";
-                
-                // EVENT CHAIN STEP 2: Instantiates pipe connection safely now that client node signature context exists
-                backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`, {
-                    reliable: true
-                });
+            // Connect using high stability cross-tab BroadcastChannel api protocol maps
+            telemetryBus = new BroadcastChannel(`BINGO_ROOM_${targetedCodeInput}`);
+            attachPlayerTrafficListeners();
 
-                backboneChannel.on('open', () => {
-                    localEngineState.role = 'player';
-                    localEngineState.roomCode = targetedCodeInput;
-                    document.getElementById('playerCodeDisplay').innerText = targetedCodeInput;
-                    document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
-                    
-                    generate90BallTicketStructure();
-                    backupStateToLocalStorage();
-                    draw3x9PlayerTicketGrid();
+            // Ping host to sync memory history blocks
+            telemetryBus.postMessage({ actionType: 'PLAYER_REQUEST_JOIN' });
 
-                    document.getElementById('setupScreen').className = 'screen';
-                    document.getElementById('playerScreen').className = 'screen active';
-                });
+            generate90BallTicketStructure();
+            backupStateToLocalStorage();
+            draw3x9PlayerTicketGrid();
 
-                attachPlayerTrafficListeners();
-            });
-
-            p2pInstance.on('error', (err) => {
-                console.error("Hardened Handshake Intercept Trap:", err);
-                alert("Connection routing failure. Make sure Room Code matches Host perfectly.");
-                document.getElementById('joinBtn').disabled = false;
-                document.getElementById('playerStatus').innerText = "Status: Connection Refused";
-            });
+            document.getElementById('setupScreen').className = 'screen';
+            document.getElementById('playerScreen').className = 'screen active';
         }
 
         function attemptStateRecovery() {
@@ -421,23 +380,18 @@
             localEngineState.playerName = localStorage.getItem('bingo_backup_name') || 'Anonymous';
             const oldRoom = localStorage.getItem('bingo_backup_room');
 
-            const recoveryIdToken = `PLAYER-REC-${Math.floor(100000 + Math.random() * 900000)}`;
-            p2pInstance = new Peer(recoveryIdToken);
+            localEngineState.role = 'player';
+            localEngineState.roomCode = oldRoom;
+            document.getElementById('playerCodeDisplay').innerText = oldRoom;
+            document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
+
+            telemetryBus = new BroadcastChannel(`BINGO_ROOM_${oldRoom}`);
+            attachPlayerTrafficListeners();
+            telemetryBus.postMessage({ actionType: 'PLAYER_REQUEST_JOIN' });
             
-            p2pInstance.on('open', () => {
-                backboneChannel = p2pInstance.connect(`ROOM-${oldRoom}`, { reliable: true });
-                backboneChannel.on('open', () => {
-                    localEngineState.role = 'player';
-                    localEngineState.roomCode = oldRoom;
-                    document.getElementById('playerCodeDisplay').innerText = oldRoom;
-                    document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
-                    
-                    draw3x9PlayerTicketGrid();
-                    document.getElementById('setupScreen').className = 'screen';
-                    document.getElementById('playerScreen').className = 'screen active';
-                });
-                attachPlayerTrafficListeners();
-            });
+            draw3x9PlayerTicketGrid();
+            document.getElementById('setupScreen').className = 'screen';
+            document.getElementById('playerScreen').className = 'screen active';
         }
 
         function backupStateToLocalStorage() {
@@ -448,7 +402,8 @@
         }
 
         function attachPlayerTrafficListeners() {
-            backboneChannel.on('data', (data) => {
+            telemetryBus.onmessage = (event) => {
+                const data = event.data;
                 if (data.actionType === 'INITIAL_STATE_SYNC') {
                     localEngineState.calledNumbersList = data.historyLog;
                     localEngineState.gameStage = data.currentStage;
@@ -471,12 +426,7 @@
                 } else if (data.actionType === 'BROADCAST_WINNER_STATE') {
                     launchWinnerBanner(data.winnerNameDetails);
                 }
-            });
-
-            backboneChannel.on('close', () => {
-                alert("Loss of synchronization stream. Upstream host room has terminated.");
-                window.location.reload();
-            });
+            };
         }
 
         function generate90BallTicketStructure() {
@@ -562,9 +512,8 @@
                 rowMarksCount[r]++;
             });
 
-            backboneChannel.send({
+            telemetryBus.postMessage({
                 actionType: 'TRANSMIT_BINGO_CLAIM',
-                senderPeerId: p2pInstance.id,
                 senderProfileName: localEngineState.playerName,
                 rowLineWeights: rowMarksCount,
                 flatListSnapshot: localEngineState.ticketFlatList,
@@ -580,7 +529,7 @@
                 if (val !== 0 && !localEngineState.calledNumbersList.includes(val)) cleanVerify = false;
             });
 
-            if (!cleanVerify) return alert(`Claim from [${payload.senderProfileName}] failed integrity check.`);
+            if (!cleanVerify) return; 
 
             let validLinesCount = 0;
             payload.rowLineWeights.forEach(count => { if(count === 5) validLinesCount++; });
@@ -601,14 +550,29 @@
                 localEngineState.gameStage = nextStage;
                 syncStageBadges();
 
-                streamingChannels.forEach(channel => {
-                    if (channel.open) {
-                        channel.send({ actionType: 'BROADCAST_WINNER_STATE', winnerNameDetails: winDetails });
-                        channel.send({ actionType: 'STAGE_ADVANCED', nextStage: nextStage });
-                    }
-                });
+                telemetryBus.postMessage({ actionType: 'BROADCAST_WINNER_STATE', winnerNameDetails: winDetails });
+                telemetryBus.postMessage({ actionType: 'STAGE_ADVANCED', nextStage: nextStage });
+            }
+        }
+
+        function executeManualAudit() {
+            const raw = document.getElementById('auditInput').value.trim();
+            const resultsBox = document.getElementById('auditResultsBox');
+            const parsedArray = raw.split(/[\s,]+/).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
+
+            let faults = [];
+            parsedArray.forEach(v => {
+                if (!localEngineState.calledNumbersList.includes(v)) faults.push(v);
+            });
+
+            resultsBox.style.display = "block";
+            if (faults.length === 0 && parsedArray.length > 0) {
+                resultsBox.className = "audit-results audit-pass";
+                resultsBox.innerHTML = `<strong>MANUAL PASS</strong><br>All values verified against called history.`;
+                launchWinnerBanner("Manual Ticket Checked & Confirmed Valid!");
             } else {
-                alert(`Claim from [${payload.senderProfileName}] evaluated: Insufficient row weights for stage [${localEngineState.gameStage}].`);
+                resultsBox.className = "audit-results audit-fail";
+                resultsBox.innerHTML = ` = "audit-results audit-fail";<strong>MANUAL FAIL</strong><br>Uncalled items: ${faults.join(', ')}`;
             }
         }
     </script>
