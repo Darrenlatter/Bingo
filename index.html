@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRO 90-BALL BINGO MATRIX</title>
-    <!-- WebRTC Signalling Layer -->
+    <title>90-BALL BINGO PRO ENGINE</title>
+    <!-- WebRTC Signalling Layer & Confetti Effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -23,7 +24,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--dark-bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 1300px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 2.5rem; }
+        header { text-align: center; margin-bottom: 2rem; }
         header h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
         header p { color: var(--text-muted); }
         .screen { display: none; }
@@ -32,44 +33,57 @@
         .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-success { background-color: var(--success); color: white; }
-        .btn-success:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; }
         
         input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1.15rem; margin-bottom: 1rem; letter-spacing: 0.05em; text-align: center; }
         .host-layout { display: grid; grid-template-columns: 1fr 2.2fr; gap: 1.5rem; }
         @media (max-width: 900px) { .host-layout { grid-template-columns: 1fr; } }
         
-        .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 220px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); }
+        /* Modern Display Board Layout */
+        .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); padding: 1rem; position: relative;}
         .ball { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%); color: #0f172a; font-size: 3.25rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 0.5rem; }
+        .lingo-text { color: var(--gold); font-style: italic; font-size: 1.1rem; font-weight: 600; min-height: 1.5rem; text-align: center; margin-top: 0.25rem; }
+        
+        /* Prior History Ribbon Tray */
+        .history-tray { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); }
+        .history-ball { width: 40px; height: 40px; border-radius: 50%; background: #475569; color: white; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
         
         .tracker-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.35rem; margin-top: 1rem; }
         .tracker-cell { background-color: var(--dark-bg); border: 1px solid var(--border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
         .tracker-cell.called { background-color: var(--success); color: white; border-color: transparent; box-shadow: 0 0 8px rgba(22, 163, 74, 0.4); }
         
-        /* 3x9 Ticket Layout Base styling specifications */
+        /* 3x9 Ticket Rendering Modules */
         .ticket-container { max-width: 750px; margin: 0 auto; }
         .ticket-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0.25rem; background-color: var(--dark-bg); padding: 0.5rem; border-radius: 8px; border: 2px solid var(--border); }
         .ticket-cell { aspect-ratio: 1; background-color: #1e293b; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--text); cursor: pointer; user-select: none; border-radius: 4px; }
-        @media (max-width: 600px) { .ticket-cell { font-size: 1rem; } }
+        @media (max-width: 600px) { .ticket-cell { font-size: 1.1rem; } }
         .ticket-cell.blank { background-color: #0f172a; cursor: not-allowed; opacity: 0.4; }
         .ticket-cell.marked { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); border-color: transparent; color: white; position: relative; }
         .ticket-cell.marked::after { content: '✕'; position: absolute; font-size: 1.8rem; color: rgba(234, 179, 8, 0.6); font-weight: 300; }
         
         .game-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
         
-        /* Interactive Alerts UI System */
+        /* Display Banners UI Frame components */
         .alert-banner { background-color: var(--gold); color: #0f172a; padding: 1rem; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: none; font-size: 1.1rem; }
         .winner-banner { display: none; background: linear-gradient(90deg, #b45309, #d97706, #b45309); color: white; padding: 2rem 1rem; border-radius: 12px; text-align: center; font-size: 2.5rem; font-weight: 900; border: 4px solid var(--gold); box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); letter-spacing: 0.05em; text-transform: uppercase; animation: pulseGlow 1.5s infinite alternate; margin-bottom: 2rem; }
-        @keyframes pulseGlow { 0% { transform: scale(0.99); box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); } 100% { transform: scale(1.01); box-shadow: 0 0 40px rgba(234, 179, 8, 0.8); } }
+        @keyframes pulseGlow { 0% { transform: scale(0.99); } 100% { transform: scale(1.01); } }
         .winner-subtext { display: block; font-size: 1.2rem; font-weight: 600; margin-top: 0.5rem; color: #fef08a; }
         
-        .status-tracker { background-color: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; border: 1px solid var(--border); }
+        /* Toggle Switch Architecture styling */
+        .toggle-container { display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .3s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
         .manual-audit-box { display: flex; gap: 0.75rem; margin-top: 1rem; }
         .audit-results { font-size: 0.9rem; font-weight: 600; margin-top: 1rem; padding: 0.75rem; border-radius: 6px; display: none; }
         .audit-pass { background-color: rgba(22, 163, 74, 0.2); border: 1px solid var(--success); color: #4ade80; }
         .audit-fail { background-color: rgba(220, 38, 38, 0.2); border: 1px solid var(--danger); color: #f87171; }
+        .stage-badge { background-color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 700; font-size: 0.85rem; color: white; letter-spacing: 0.05em;}
     </style>
 </head>
 <body>
@@ -77,44 +91,43 @@
     <div class="container">
         <header>
             <h1>PRO 90-BALL BINGO MATRIX</h1>
-            <p>International 3x9 Ticket Sync Engine & Manual Audit Terminal</p>
+            <p>Casino-Grade Multi-Stage P2P Engine with Resilience System</p>
         </header>
 
-        <!-- WINNER DETECTED FULL BANNER SYSTEM -->
         <div id="winnerBanner" class="winner-banner">
             🏆 WINNER DETECTED! 🏆
-            <span id="winnerBannerDetails" class="winner-subtext">Player Name Verified Here</span>
+            <span id="winnerBannerDetails" class="winner-subtext">Player Verified</span>
         </div>
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <!-- SCREEN 1: Setup Architecture selection -->
+        <!-- SCREEN 1: Setup Architecture Selection -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
                 <div class="card">
                     <h2>Host Broadcast Node</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a 1-90 ball caller configuration with real-time stream encryption and integrated validation terminal.</p>
-                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="start90BallHost()">Initialize Caller Node</button>
-                    <div id="hostStatus" class="status-tracker">Status: Ready</div>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize an authoritative master game controller session with voice synthesizer engine.</p>
+                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="start90BallHost()">Initialize Host Module</button>
                 </div>
 
                 <div class="card">
                     <h2>Join Active Room</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Enter your identifier handle and the Host room token signature to link data buses.</p>
-                    <input type="text" id="playerNameInput" placeholder="ENTER YOUR NAME" maxlength="20">
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Link ticket configuration matrices using a valid signature handle coordinate.</p>
+                    <input type="text" id="playerNameInput" placeholder="ENTER PLAYER NAME" maxlength="20">
                     <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT ROOM CODE" maxlength="5">
                     <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectTo90BallHost()">Connect Ticket Node</button>
-                    <div id="playerStatus" class="status-tracker">Status: Awaiting parameters</div>
+                    <button id="recoveryBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; display:none;" onclick="attemptStateRecovery()">Recover Disconnected Board</button>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: Host Interface Matrix -->
+        <!-- SCREEN 2: Host Interface Matrix Dashboard -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Broadcasting Token ID: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
-                <div>Extracted Counter: <strong id="drawnCount">0</strong>/90</div>
-                <button class="btn btn-danger" onclick="triggerMasterReset()">Reset Entire Game Engine</button>
+                <div>Broadcasting Token: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
+                <div>Active target pattern stage: <span id="hostStageBadge" class="stage-badge">1 LINE</span></div>
+                <div>Extracted Pool: <strong id="drawnCount">0</strong>/90</div>
+                <button class="btn btn-danger" onclick="triggerMasterReset()">Reset Entire Engine State</button>
             </div>
             
             <div class="host-layout">
@@ -122,24 +135,29 @@
                     <div class="card">
                         <div class="current-number-display">
                             <div id="ballDisplay" class="ball">--</div>
-                            <h3 style="color: var(--text-muted);">Current Call</h3>
+                            <div id="lingoDisplay" class="lingo-text">Awaiting First Draw</div>
+                            
+                            <div class="history-tray">
+                                <div id="hist-1" class="history-ball">--</div>
+                                <div id="hist-2" class="history-ball">--</div>
+                                <div id="hist-3" class="history-ball">--</div>
+                            </div>
                         </div>
-                        <button class="btn btn-success" style="width: 100%; margin-top: 1rem; padding: 0.85rem;" onclick="draw90BallNumber()">Execute Drawing</button>
+                        <button class="btn btn-success" style="width: 100%; margin-top: 1rem; padding: 0.85rem;" onclick="draw90BallNumber()">Execute Next Draw</button>
                     </div>
 
                     <div class="card">
-                        <h3>Manual Card Verification Terminal</h3>
-                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0.25rem 0 0.75rem 0;">Audit physical or desynced cards here manually by typing space-separated numbers.</p>
+                        <h3>Manual Verification Interface</h3>
                         <div class="manual-audit-box">
-                            <input type="text" id="auditInput" placeholder="e.g. 12 24 45 67 88" style="margin: 0; font-size: 1rem;">
-                            <button class="btn btn-primary" onclick="executeManualAudit()">Verify</button>
+                            <input type="text" id="auditInput" placeholder="Enter space separated values" style="margin: 0; font-size: 1rem;">
+                            <button class="btn btn-primary" onclick="executeManualAudit()">Audit</button>
                         </div>
                         <div id="auditResultsBox" class="audit-results"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3>Master 90-Ball Numerical History Pool</h3>
+                    <h3>Authoritative Called History Matrix</h3>
                     <div id="trackerGrid" class="tracker-grid"></div>
                 </div>
             </div>
@@ -149,11 +167,19 @@
         <div id="playerScreen" class="screen">
             <div class="ticket-container">
                 <div class="game-meta">
-                    <div>Player Identity Node: <strong id="playerIdentityDisplay" style="color: var(--primary);">Anonymous</strong></div>
-                    <div>Paired Session Room: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
-                    <button class="btn btn-danger" onclick="transmitBingoClaim()">Call BINGO / Housie!</button>
+                    <div>User Node: <strong id="playerIdentityDisplay" style="color: var(--primary);">Anonymous</strong></div>
+                    <div>Target Objective: <span id="playerStageBadge" class="stage-badge">1 LINE</span></div>
+                    
+                    <div class="toggle-container">
+                        <span>AUTO-DAUB</span>
+                        <label class="switch">
+                            <input type="checkbox" id="autoDaubToggle" onchange="handleAutoDaubStateSwitch()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-danger" onclick="transmitBingoClaim()">Call BINGO!</button>
                 </div>
-                <h3 style="margin-bottom: 0.5rem; text-align: center; color: var(--gold); letter-spacing: 0.1em;">OFFICIAL 3x9 INTERNATIONAL TICKET</h3>
                 <div class="card" style="padding: 0.7rem;">
                     <div id="ticketGrid" class="ticket-grid"></div>
                 </div>
@@ -162,6 +188,19 @@
     </div>
 
     <script>
+        // --- Traditional UK Call Lingo Definition Array ---
+        const bingoLingoMatrix = {
+            1: "Kelly's Eye", 2: "One Little Duck", 3: "Cup of Tea", 4: "Knock at the Door", 5: "Man Alive", 6: "Tom Mix", 7: "Lucky Seven", 8: "Garden Gate", 9: "Doctor's Orders", 10: "Cameron's Den",
+            11: "Legs Eleven", 12: "One Dozen", 13: "Unlucky for Some", 14: "Valentine's Day", 15: "Young and Keen", 16: "Sweet Sixteen", 17: "Dancing Queen", 18: "Coming of Age", 19: "Goodbye Tens", 20: "One Score",
+            21: "Royal工nsignia", 22: "Two Little Ducks", 23: "Thee and Me", 24: "Two Dozen", 25: "Duck and Dive", 26: "Pick and Mix", 27: "Gateway to Heaven", 28: "In a State", 29: "Rise and Shine", 30: "Dirty Gertie",
+            31: "Get Up and Run", 32: "Buckle My Shoe", 33: "Dirty Knee", 34: "Ask for More", 35: "Jump and Jive", 36: "Three Dozen", 37: "More than Eleven", 38: "Christmas Cake", 39: "Steps", 40: "Life Begins",
+            41: "Time for Fun", 42: "Whallop!", 43: "Down on your Knee", 44: "Droopy Drawers", 45: "Halfway House", 46: "Up to Tricks", 47: "Four and Seven", 48: "Four Dozen", 49: "PC", 50: "Half a Century",
+            51: "Tweak of the Thumb", 52: "Danny La Rue", 53: "Stuck in the Tree", 54: "Clean the Floor", 55: "Snakes Alive", 56: "Was she worth it?", 57: "Heinz Varieties", 58: "Make them Wait", 59: "The Brighton Line", 60: "Five Dozen",
+            61: "Baker's Bun", 62: "Turn the Screw", 63: "Tickle Me 63", 64: "Red Raw", 65: "Old Age Pension", 66: "Clickety Click", 67: "Stairway to Heaven", 68: "Saving Grace", 69: "Anyway Up", 70: "Three Score and Ten",
+            71: "Bang on the Drum", 72: "Danny La Rue", 73: "Queen B", 74: "Candy Store", 75: "Strive and Strive", 76: "Trombones", 77: "Sunset Strip", 78: "Heaven's Gate", 79: "One More Time", 80: "Eight Infinity Rows",
+            81: "Fat Lady with a Cane", 82: "Straight on Through", 83: "Time for Tea", 84: "Seven Dozen", 85: "Staying Alive", 86: "Between the Sticks", 87: "Torquay Ferry", 88: "Two Fat Ladies", 89: "Nearly There", 90: "Top of the Shop"
+        };
+
         let p2pInstance = null;
         let streamingChannels = []; 
         let backboneChannel = null;  
@@ -172,14 +211,21 @@
             playerName: 'Anonymous',
             calledNumbersList: [],
             ticketFlatList: Array(27).fill(0), 
-            activeMarks: [] 
+            activeMarks: [],
+            gameStage: '1 LINE', // Progression track values: '1 LINE' -> '2 LINES' -> 'FULL HOUSE'
+            autoDaubEnabled: false
+        };
+
+        window.onload = function() {
+            if (localStorage.getItem('bingo_backup_flat_list')) {
+                document.getElementById('recoveryBtn').style.display = 'block';
+            }
         };
 
         function triggerUINotification(message) {
             const displayBanner = document.getElementById('alertBanner');
             displayBanner.innerText = message;
             displayBanner.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function clearUINotifications() {
@@ -190,14 +236,18 @@
         function launchWinnerBanner(identString) {
             document.getElementById('winnerBannerDetails').innerText = identString;
             document.getElementById('winnerBanner').style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }
 
-        // --- HOST LOGIC SECTOR ---
-        function start90BallHost() {
-            document.getElementById('hostStatus').innerText = "Status: Spinning protocol thread...";
-            document.getElementById('hostBtn').disabled = true;
+        function syncStageBadges() {
+            const hb = document.getElementById('hostStageBadge');
+            const pb = document.getElementById('playerStageBadge');
+            if (hb) hb.innerText = localEngineState.gameStage;
+            if (pb) pb.innerText = localEngineState.gameStage;
+        }
 
+        // --- AUTHORITATIVE HOST LAYER ---
+        function start90BallHost() {
             const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
             p2pInstance = new Peer(`ROOM-${uniqueRoomKey}`);
 
@@ -206,7 +256,6 @@
                 localEngineState.roomCode = uniqueRoomKey;
                 document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
                 build90BallTrackingGrid();
-
                 document.getElementById('setupScreen').classList.remove('active');
                 document.getElementById('hostScreen').classList.add('active');
             });
@@ -216,21 +265,14 @@
                 incomingChannel.on('open', () => {
                     incomingChannel.send({ 
                         actionType: 'INITIAL_STATE_SYNC', 
-                        historyLog: localEngineState.calledNumbersList 
+                        historyLog: localEngineState.calledNumbersList,
+                        currentStage: localEngineState.gameStage
                     });
                 });
 
-                incomingChannel.on('data', (incomingDataPayload) => {
-                    if (incomingDataPayload.actionType === 'TRANSMIT_BINGO_CLAIM') {
-                        evaluateIncomingBingoClaim(incomingDataPayload);
-                    }
+                incomingChannel.on('data', (payload) => {
+                    if (payload.actionType === 'TRANSMIT_BINGO_CLAIM') evaluateIncomingBingoClaim(payload);
                 });
-            });
-
-            p2pInstance.on('error', (err) => {
-                alert("Signaling pipeline fault. Reset system parameters.");
-                document.getElementById('hostBtn').disabled = false;
-                document.getElementById('hostStatus').innerText = "Status: Error";
             });
         }
 
@@ -247,10 +289,7 @@
         }
 
         function draw90BallNumber() {
-            if (localEngineState.calledNumbersList.length >= 90) {
-                triggerUINotification("All 90 numbers extracted. Game context closed.");
-                return;
-            }
+            if (localEngineState.calledNumbersList.length >= 90) return;
 
             let randomSelection;
             do {
@@ -259,10 +298,26 @@
 
             localEngineState.calledNumbersList.push(randomSelection);
             
+            // UI Render Updates
             document.getElementById('ballDisplay').innerText = randomSelection;
+            document.getElementById('lingoDisplay').innerText = `"${bingoLingoMatrix[randomSelection]}"`;
             document.getElementById(`host-track-node-${randomSelection}`).classList.add('called');
             document.getElementById('drawnCount').innerText = localEngineState.calledNumbersList.length;
 
+            // Shift Prior history ribbon nodes 
+            const hist = [...localEngineState.calledNumbersList].reverse();
+            document.getElementById('hist-1').innerText = hist[1] || '--';
+            document.getElementById('hist-2').innerText = hist[2] || '--';
+            document.getElementById('hist-3').innerText = hist[3] || '--';
+
+            // Speak generated digit vector natively via synthesize subsystem
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let callScript = `${getBingoColumnLetter(randomSelection)} ${randomSelection}. ${bingoLingoMatrix[randomSelection]}.`;
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(callScript));
+            }
+
+            // Sync Broadcast
             streamingChannels.forEach(channel => {
                 if (channel.open) {
                     channel.send({ 
@@ -274,91 +329,41 @@
             });
         }
 
-        // --- GLOBAL ENGINE STATE MASTER RESET ---
-        function triggerMasterReset() {
-            if (!confirm("Confirm action: Do you want to completely clear current sessions, boards, and draw metrics?")) return;
+        function getBingoColumnLetter(v) {
+            if(v<=15) return 'B'; if(v<=30) return 'I'; if(v<=45) return 'N'; if(v<=60) return 'G'; return 'O';
+        }
 
+        function triggerMasterReset() {
+            if (!confirm("Flush all engine structures and start over?")) return;
             localEngineState.calledNumbersList = [];
+            localEngineState.gameStage = '1 LINE';
             clearUINotifications();
+            syncStageBadges();
             
-            // Clean host visuals back to factory settings
             document.getElementById('ballDisplay').innerText = '--';
+            document.getElementById('lingoDisplay').innerText = 'Awaiting First Draw';
             document.getElementById('drawnCount').innerText = '0';
-            document.getElementById('auditInput').value = '';
-            document.getElementById('auditResultsBox').style.display = 'none';
+            document.getElementById('hist-1').innerText = '--';
+            document.getElementById('hist-2').innerText = '--';
+            document.getElementById('hist-3').innerText = '--';
             build90BallTrackingGrid();
 
-            // Broadcast structural reset frames down the execution lines
             streamingChannels.forEach(channel => {
-                if (channel.open) {
-                    channel.send({ actionType: 'EXECUTE_ENGINE_RESET' });
-                }
+                if (channel.open) channel.send({ actionType: 'EXECUTE_ENGINE_RESET' });
             });
-
-            triggerUINotification("System State Flushed. New game initialized.");
         }
 
-        // --- MANUAL AUDITING ENGINE ---
-        function executeManualAudit() {
-            const auditRawInput = document.getElementById('auditInput').value.trim();
-            const resultsBox = document.getElementById('auditResultsBox');
-            
-            if (!auditRawInput) {
-                resultsBox.style.display = "block";
-                resultsBox.className = "audit-results audit-fail";
-                resultsBox.innerText = "Error: Inspection field blank.";
-                return;
-            }
-
-            const candidatesArray = auditRawInput.split(/[\s,]+/).map(num => parseInt(num, 10)).filter(num => !isNaN(num));
-
-            let validatedPullsList = [];
-            let verificationFaultsList = [];
-
-            candidatesArray.forEach(val => {
-                if (val < 1 || val > 90) {
-                    verificationFaultsList.push(`${val} (Out of Range)`);
-                } else if (localEngineState.calledNumbersList.includes(val)) {
-                    validatedPullsList.push(val);
-                } else {
-                    verificationFaultsList.push(val);
-                }
-            });
-
-            resultsBox.style.display = "block";
-            if (verificationFaultsList.length === 0 && candidatesArray.length > 0) {
-                resultsBox.className = "audit-results audit-pass";
-                resultsBox.innerHTML = `<strong>CARD AUDIT VERIFIED [PASS]</strong><br>All values match called history parameters.`;
-                launchWinnerBanner("Manual Input Card Verified Successfully");
-            } else {
-                resultsBox.className = "audit-results audit-fail";
-                resultsBox.innerHTML = `<strong>CARD AUDIT FALSIFIED [FAIL]</strong><br>Uncalled/Invalid numbers detected: ${verificationFaultsList.join(', ')}`;
-            }
-        }
-
-        // --- PLAYER INTERACTIVE TERMINAL SECTOR ---
+        // --- PLAYER DATA STRUCTURE & LOCAL SYNC LAYER ---
         function connectTo90BallHost() {
             const nameInput = document.getElementById('playerNameInput').value.trim();
             const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
-            
-            if (!nameInput) {
-                alert("Player Identification Name required.");
-                return;
-            }
-            if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
-                alert("Room codes must consist of exactly 5 numeric keys.");
-                return;
-            }
+            if (!nameInput || targetedCodeInput.length !== 5) return alert("All configuration identity fields required.");
 
             localEngineState.playerName = nameInput;
-            document.getElementById('playerStatus').innerText = "Status: Resolving signal path...";
-            document.getElementById('joinBtn').disabled = true;
-
             p2pInstance = new Peer();
 
             p2pInstance.on('open', () => {
                 backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`);
-
                 backboneChannel.on('open', () => {
                     localEngineState.role = 'player';
                     localEngineState.roomCode = targetedCodeInput;
@@ -366,71 +371,93 @@
                     document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
                     
                     generate90BallTicketStructure();
+                    backupStateToLocalStorage();
                     draw3x9PlayerTicketGrid();
 
                     document.getElementById('setupScreen').classList.remove('active');
                     document.getElementById('playerScreen').classList.add('active');
                 });
 
-                backboneChannel.on('data', (incomingBroadcast) => {
-                    if (incomingBroadcast.actionType === 'INITIAL_STATE_SYNC' || incomingBroadcast.actionType === 'EMIT_NUMBER_DRAW') {
-                        localEngineState.calledNumbersList = incomingBroadcast.historyLog;
-                    } else if (incomingBroadcast.actionType === 'EXECUTE_ENGINE_RESET') {
-                        // Wipe player context parameters completely
-                        localEngineState.activeMarks = [];
-                        clearUINotifications();
-                        draw3x9PlayerTicketGrid();
-                        triggerUINotification("Host has reset the game matrix room. Active markings cleared!");
-                    } else if (incomingBroadcast.actionType === 'BROADCAST_WINNER_STATE') {
-                        launchWinnerBanner(incomingBroadcast.winnerNameDetails);
-                    }
-                });
-
-                backboneChannel.on('close', () => {
-                    alert("Upstream host interface connection reset.");
-                    window.location.reload();
-                });
+                attachPlayerTrafficListeners();
             });
+        }
 
-            p2pInstance.on('error', (err) => {
-                alert("Failed to sync room. Confirm tracking index sequence handles on Host.");
-                document.getElementById('joinBtn').disabled = false;
-                document.getElementById('playerStatus').innerText = "Status: Refused";
+        function attemptStateRecovery() {
+            localEngineState.ticketFlatList = JSON.parse(localStorage.getItem('bingo_backup_flat_list'));
+            localEngineState.activeMarks = JSON.parse(localStorage.getItem('bingo_backup_active_marks')) || [];
+            localEngineState.playerName = localStorage.getItem('bingo_backup_name') || 'Anonymous';
+            const oldRoom = localStorage.getItem('bingo_backup_room');
+
+            p2pInstance = new Peer();
+            p2pInstance.on('open', () => {
+                backboneChannel = p2pInstance.connect(`ROOM-${oldRoom}`);
+                backboneChannel.on('open', () => {
+                    localEngineState.role = 'player';
+                    localEngineState.roomCode = oldRoom;
+                    document.getElementById('playerCodeDisplay').innerText = oldRoom;
+                    document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
+                    
+                    draw3x9PlayerTicketGrid();
+                    document.getElementById('setupScreen').classList.remove('active');
+                    document.getElementById('playerScreen').classList.add('active');
+                });
+                attachPlayerTrafficListeners();
+            });
+        }
+
+        function backupStateToLocalStorage() {
+            localStorage.setItem('bingo_backup_flat_list', JSON.stringify(localEngineState.ticketFlatList));
+            localStorage.setItem('bingo_backup_active_marks', JSON.stringify(localEngineState.activeMarks));
+            localStorage.setItem('bingo_backup_name', localEngineState.playerName);
+            localStorage.setItem('bingo_backup_room', localEngineState.roomCode);
+        }
+
+        function attachPlayerTrafficListeners() {
+            backboneChannel.on('data', (data) => {
+                if (data.actionType === 'INITIAL_STATE_SYNC') {
+                    localEngineState.calledNumbersList = data.historyLog;
+                    localEngineState.gameStage = data.currentStage;
+                    syncStageBadges();
+                    if (localEngineState.autoDaubEnabled) executeAutoDaubScan();
+                } else if (data.actionType === 'EMIT_NUMBER_DRAW') {
+                    localEngineState.calledNumbersList = data.historyLog;
+                    if (localEngineState.autoDaubEnabled) executeAutoDaubScan();
+                } else if (data.actionType === 'STAGE_ADVANCED') {
+                    localEngineState.gameStage = data.nextStage;
+                    syncStageBadges();
+                    clearUINotifications();
+                } else if (data.actionType === 'EXECUTE_ENGINE_RESET') {
+                    localEngineState.activeMarks = [];
+                    localEngineState.gameStage = '1 LINE';
+                    localStorage.clear();
+                    clearUINotifications();
+                    syncStageBadges();
+                    draw3x9PlayerTicketGrid();
+                } else if (data.actionType === 'BROADCAST_WINNER_STATE') {
+                    launchWinnerBanner(data.winnerNameDetails);
+                }
             });
         }
 
         function generate90BallTicketStructure() {
             let columnRanges = [
-                Array.from({length: 9},  (_, i) => i + 1),  
-                Array.from({length: 10}, (_, i) => i + 10), 
-                Array.from({length: 10}, (_, i) => i + 20), 
-                Array.from({length: 10}, (_, i) => i + 30), 
-                Array.from({length: 10}, (_, i) => i + 40), 
-                Array.from({length: 10}, (_, i) => i + 50), 
-                Array.from({length: 10}, (_, i) => i + 60), 
-                Array.from({length: 10}, (_, i) => i + 70), 
-                Array.from({length: 11}, (_, i) => i + 80)  
+                Array.from({length: 9},  (_, i) => i + 1), Array.from({length: 10}, (_, i) => i + 10),
+                Array.from({length: 10}, (_, i) => i + 20), Array.from({length: 10}, (_, i) => i + 30),
+                Array.from({length: 10}, (_, i) => i + 40), Array.from({length: 10}, (_, i) => i + 50),
+                Array.from({length: 10}, (_, i) => i + 60), Array.from({length: 10}, (_, i) => i + 70),
+                Array.from({length: 11}, (_, i) => i + 80)
             ];
-
-            const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
-            columnRanges.forEach(range => shuffle(range));
+            columnRanges.forEach(r => r.sort(() => Math.random() - 0.5));
 
             let allocationGrid = Array(3).fill(0).map(() => Array(9).fill(0));
-
             for (let r = 0; r < 3; r++) {
-                let numbersPlacedIndices = [];
-                while (numbersPlacedIndices.length < 5) {
-                    let randomCol = Math.floor(Math.random() * 9);
-                    if (!numbersPlacedIndices.includes(randomCol) && allocationGrid[r][randomCol] === 0) {
-                        numbersPlacedIndices.push(randomCol);
-                    }
+                let places = [];
+                while(places.length < 5) {
+                    let c = Math.floor(Math.random() * 9);
+                    if(!places.includes(c)) places.push(c);
                 }
-                
-                numbersPlacedIndices.forEach(colIndex => {
-                    allocationGrid[r][colIndex] = columnRanges[colIndex].pop();
-                });
+                places.forEach(c => allocationGrid[r][c] = columnRanges[c].pop());
             }
-
             localEngineState.ticketFlatList = allocationGrid.flat();
         }
 
@@ -441,12 +468,14 @@
             for (let targetIndex = 0; targetIndex < 27; targetIndex++) {
                 const numericalMatrixVal = localEngineState.ticketFlatList[targetIndex];
                 const cellDomElement = document.createElement('div');
+                cellDomElement.id = `player-cell-${targetIndex}`;
                 
                 if (numericalMatrixVal === 0) {
                     cellDomElement.className = 'ticket-cell blank';
                 } else {
                     cellDomElement.className = 'ticket-cell';
                     cellDomElement.innerText = numericalMatrixVal;
+                    if (localEngineState.activeMarks.includes(targetIndex)) cellDomElement.classList.add('marked');
                     cellDomElement.onclick = () => processTicketInteraction(targetIndex, numericalMatrixVal, cellDomElement);
                 }
                 targetContainerGrid.appendChild(cellDomElement);
@@ -454,65 +483,123 @@
         }
 
         function processTicketInteraction(linearIndex, targetedValue, htmlNode) {
-            if (!localEngineState.calledNumbersList.includes(targetedValue)) {
-                alert(`Rule Protection: [${targetedValue}] has not been announced by the Host execution core.`);
-                return;
-            }
+            if (localEngineState.autoDaubEnabled) return;
+            if (!localEngineState.calledNumbersList.includes(targetedValue)) return alert("Number not yet pulled!");
 
-            const selectionTrackingOffset = localEngineState.activeMarks.indexOf(linearIndex);
-            if (selectionTrackingOffset > -1) {
-                localEngineState.activeMarks.splice(selectionTrackingOffset, 1);
+            const matchOffset = localEngineState.activeMarks.indexOf(linearIndex);
+            if (matchOffset > -1) {
+                localEngineState.activeMarks.splice(matchOffset, 1);
                 htmlNode.classList.remove('marked');
             } else {
                 localEngineState.activeMarks.push(linearIndex);
                 htmlNode.classList.add('marked');
             }
+            backupStateToLocalStorage();
         }
 
-        function transmitBingoClaim() {
-            if (localEngineState.activeMarks.length === 0) {
-                alert("No marked positions registered on data bus.");
-                return;
-            }
+        // --- AUTOMATED DAUB SCAN ENGINE LAYER ---
+        function handleAutoDaubStateSwitch() {
+            localEngineState.autoDaubEnabled = document.getElementById('autoDaubToggle').checked;
+            if (localEngineState.autoDaubEnabled) executeAutoDaubScan();
+        }
 
-            let numbersClaimedList = localEngineState.activeMarks.map(idx => localEngineState.ticketFlatList[idx]);
+        function executeAutoDaubScan() {
+            for (let idx = 0; idx < 27; idx++) {
+                const val = localEngineState.ticketFlatList[idx];
+                if (val !== 0 && localEngineState.calledNumbersList.includes(val) && !localEngineState.activeMarks.includes(idx)) {
+                    localEngineState.activeMarks.push(idx);
+                    const cell = document.getElementById(`player-cell-${idx}`);
+                    if (cell) cell.classList.add('marked');
+                }
+            }
+            backupStateToLocalStorage();
+        }
+
+        // --- PROGRESSIVE MULTI-STAGE VERIFICATION LAYER ---
+        function transmitBingoClaim() {
+            let rowMarksCount = [0, 0, 0];
+            localEngineState.activeMarks.forEach(idx => {
+                let r = Math.floor(idx / 9);
+                rowMarksCount[r]++;
+            });
 
             backboneChannel.send({
                 actionType: 'TRANSMIT_BINGO_CLAIM',
                 senderPeerId: p2pInstance.id,
                 senderProfileName: localEngineState.playerName,
-                valuesClaimedLog: numbersClaimedList
+                rowLineWeights: rowMarksCount,
+                flatListSnapshot: localEngineState.ticketFlatList,
+                activeMarksSnapshot: localEngineState.activeMarks
             });
-            triggerUINotification("Housie data frame routed downstream to Host router. Awaiting verification parse...");
+            triggerUINotification("Claim payload evaluated and routed to host.");
         }
 
         function evaluateIncomingBingoClaim(payload) {
-            let computationalProofFails = false;
-            let authenticatedMatchesList = [];
-
-            payload.valuesClaimedLog.forEach(claimedVal => {
-                if (localEngineState.calledNumbersList.includes(claimedVal)) {
-                    authenticatedMatchesList.push(claimedVal);
-                } else {
-                    computationalProofFails = true;
-                }
+            // AUTHORITATIVE VERIFICATION SWEEP
+            let cleanVerify = true;
+            payload.activeMarksSnapshot.forEach(idx => {
+                let val = payload.flatListSnapshot[idx];
+                if (val !== 0 && !localEngineState.calledNumbersList.includes(val)) cleanVerify = false;
             });
 
-            if (!computationalProofFails && authenticatedMatchesList.length > 0) {
-                const winMetaDetails = `Player Node Identity: "${payload.senderProfileName}"`;
-                launchWinnerBanner(winMetaDetails);
+            if (!cleanVerify) return alert(`Claim from [${payload.senderProfileName}] failed integrity check.`);
 
-                // Broadcast winning configuration down to all listeners so everyone sees the flash alert
+            let validLinesCount = 0;
+            payload.rowLineWeights.forEach(count => { if(count === 5) validLinesCount++; });
+
+            let stagePassed = false;
+            if (localEngineState.gameStage === '1 LINE' && validLinesCount >= 1) stagePassed = true;
+            else if (localEngineState.gameStage === '2 LINES' && validLinesCount >= 2) stagePassed = true;
+            else if (localEngineState.gameStage === 'FULL HOUSE' && validLinesCount === 3) stagePassed = true;
+
+            if (stagePassed) {
+                const winDetails = `"${payload.senderProfileName}" cleared pattern [${localEngineState.gameStage}]!`;
+                launchWinnerBanner(winDetails);
+
+                // Advance system ruleset internally 
+                let nextStage = localEngineState.gameStage;
+                if (localEngineState.gameStage === '1 LINE') nextStage = '2 LINES';
+                else if (localEngineState.gameStage === '2 LINES') nextStage = 'FULL HOUSE';
+
+                localEngineState.gameStage = nextStage;
+                syncStageBadges();
+
                 streamingChannels.forEach(channel => {
                     if (channel.open) {
-                        channel.send({
-                            actionType: 'BROADCAST_WINNER_STATE',
-                            winnerNameDetails: winMetaDetails
+                        channel.send({ 
+                            actionType: 'BROADCAST_WINNER_STATE', 
+                            winnerNameDetails: winDetails 
+                        });
+                        channel.send({ 
+                            actionType: 'STAGE_ADVANCED', 
+                            nextStage: nextStage 
                         });
                     }
                 });
             } else {
-                alert(`Notice: Claim received from player node [${payload.senderProfileName}] failed validation protocols.`);
+                alert(`Claim from [${payload.senderProfileName}] evaluated: Insufficient matching row lanes for stage [${localEngineState.gameStage}].`);
+            }
+        }
+
+        // --- MANUAL FIELD AUDIT CONTROLLER LAYER ---
+        function executeManualAudit() {
+            const raw = document.getElementById('auditInput').value.trim();
+            const resultsBox = document.getElementById('auditResultsBox');
+            const parsedArray = raw.split(/[\s,]+/).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
+
+            let faults = [];
+            parsedArray.forEach(v => {
+                if (!localEngineState.calledNumbersList.includes(v)) faults.push(v);
+            });
+
+            resultsBox.style.display = "block";
+            if (faults.length === 0 && parsedArray.length > 0) {
+                resultsBox.className = "audit-results audit-pass";
+                resultsBox.innerHTML = `<strong>MANUAL PASS</strong><br>All values verified against called history.`;
+                launchWinnerBanner("Manual Ticket Checked & Confirmed Valid!");
+            } else {
+                resultsBox.className = "audit-results audit-fail";
+                resultsBox.innerHTML = `<strong>MANUAL FAIL</strong><br>Uncalled items: ${faults.join(', ')}`;
             }
         }
     </script>
