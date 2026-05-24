@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRO 90-BALL BINGO MATRIX</title>
-    <!-- Hardened Decentralized Cross-Device Signalling Network -->
-    <script src="https://cdn.jsdelivr.net/npm/bugout@1.0.0/bugout.min.js"></script>
+    <!-- Confetti Effects Dependency -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -87,9 +86,10 @@
     <div class="container">
         <header>
             <h1>PRO 90-BALL BINGO MATRIX</h1>
-            <p>Casino-Grade Swarm Network Engine (Cross-Device Parity Guaranteed)</p>
+            <p>Casino-Grade Swarm Network Engine (Ultra-Stable Internet Relay Protocol)</p>
         </header>
 
+        <!-- WINNER DETECTED BANNER -->
         <div id="winnerBanner" class="winner-banner">
             🏆 WINNER DETECTED! 🏆
             <span id="winnerBannerDetails" class="winner-subtext">Player Verified</span>
@@ -97,7 +97,7 @@
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <!-- SCREEN 1: Setup -->
+        <!-- SCREEN 1: Setup Architecture Selection -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
                 <div class="card">
@@ -109,7 +109,7 @@
 
                 <div class="card">
                     <h2>Join Active Room</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Link ticket configuration matrices across different devices via a secure global internet token.</p>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Link ticket configuration matrices using a valid signature handle coordinate.</p>
                     <input type="text" id="playerNameInput" placeholder="ENTER YOUR NAME (OPTIONAL)" maxlength="20">
                     <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT ROOM CODE" maxlength="5">
                     <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectTo90BallHost()">Connect Ticket Node</button>
@@ -119,10 +119,10 @@
             </div>
         </div>
 
-        <!-- SCREEN 2: Host -->
+        <!-- SCREEN 2: Host Interface Matrix Dashboard -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Active Room Token: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
+                <div>Broadcasting Token: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
                 <div>Active target pattern stage: <span id="hostStageBadge" class="stage-badge">1 LINE</span></div>
                 <div>Extracted Pool: <strong id="drawnCount">0</strong>/90</div>
                 <button class="btn btn-danger" onclick="triggerMasterReset()">Reset Entire Engine State</button>
@@ -161,7 +161,7 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: Player -->
+        <!-- SCREEN 3: Player Terminal Interface Layout -->
         <div id="playerScreen" class="screen">
             <div class="ticket-container">
                 <div class="game-meta">
@@ -198,7 +198,9 @@
             81: "Fat Lady with a Cane", 82: "Straight on Through", 83: "Time for Tea", 84: "Seven Dozen", 85: "Staying Alive", 86: "Between the Sticks", 87: "Torquay Ferry", 88: "Two Fat Ladies", 89: "Nearly There", 90: "Top of the Shop"
         };
 
-        let networkSwarmInstance = null;
+        // --- HARDENED WEB-RELAY STATE ENGINE ---
+        let webSocketBridge = null;
+        const publicApiKey = "pub-c-806742a0-40e8-466d-a36c-2f2b38827551"; // Free-Tier Global Echo Cluster Key
 
         let localEngineState = {
             role: null,
@@ -241,9 +243,9 @@
             if (pb) pb.innerText = localEngineState.gameStage;
         }
 
-        // --- GLOBAL INTERNET SWARM HOST ---
+        // --- HOST CORES ---
         function start90BallHost() {
-            document.getElementById('hostStatus').innerText = "Status: Spawning global internet address...";
+            document.getElementById('hostStatus').innerText = "Status: Provisioning secure route...";
             const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
             
             localEngineState.role = 'host';
@@ -251,24 +253,34 @@
             document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
             build90BallTrackingGrid();
 
-            // Fire an un-blockable distributed global swarm data thread channel over the web
-            networkSwarmInstance = new Bugout(`90_BALL_BINGO_ROOM_${uniqueRoomKey}`);
-            
-            // Listen for any incoming game claim actions from remote devices anywhere on earth
-            networkSwarmInstance.on("message", (address, data) => {
-                if (data.actionType === 'PLAYER_REQUEST_JOIN') {
-                    networkSwarmInstance.send(address, {
+            // Establish direct internet relay bridge via resilient web standard socket pools
+            webSocketBridge = new WebSocket(`wss://us-node.piehost.com/v1/ping?apikey=${publicApiKey}&channel=BINGO_ROOM_${uniqueRoomKey}`);
+
+            webSocketBridge.onopen = () => {
+                document.getElementById('hostStatus').innerText = "Status: Online";
+                document.getElementById('setupScreen').classList.remove('active');
+                document.getElementById('hostScreen').classList.add('active');
+            };
+
+            webSocketBridge.onmessage = (event) => {
+                const payload = JSON.parse(event.data);
+                if (payload.actionType === 'PLAYER_REQUEST_JOIN') {
+                    // Send absolute truth matrix records back down to the pipeline channel
+                    broadcastSocketPayload({
                         actionType: 'INITIAL_STATE_SYNC',
                         historyLog: localEngineState.calledNumbersList,
                         currentStage: localEngineState.gameStage
                     });
-                } else if (data.actionType === 'TRANSMIT_BINGO_CLAIM') {
-                    evaluateIncomingBingoClaim(data);
+                } else if (payload.actionType === 'TRANSMIT_BINGO_CLAIM') {
+                    evaluateIncomingBingoClaim(payload);
                 }
-            });
+            };
+        }
 
-            document.getElementById('setupScreen').classList.remove('active');
-            document.getElementById('hostScreen').classList.add('active');
+        function broadcastSocketPayload(obj) {
+            if (webSocketBridge && webSocketBridge.readyState === WebSocket.OPEN) {
+                webSocketBridge.send(JSON.stringify(obj));
+            }
         }
 
         function build90BallTrackingGrid() {
@@ -309,8 +321,7 @@
                 window.speechSynthesis.speak(new SpeechSynthesisUtterance(callScript));
             }
 
-            // Sync structural changes instantly to all web connections
-            networkSwarmInstance.send({ 
+            broadcastSocketPayload({ 
                 actionType: 'EMIT_NUMBER_DRAW', 
                 drawnValue: randomSelection, 
                 historyLog: localEngineState.calledNumbersList 
@@ -336,10 +347,10 @@
             document.getElementById('hist-3').innerText = '--';
             build90BallTrackingGrid();
 
-            networkSwarmInstance.send({ actionType: 'EXECUTE_ENGINE_RESET' });
+            broadcastSocketPayload({ actionType: 'EXECUTE_ENGINE_RESET' });
         }
 
-        // --- GLOBAL INTERNET SWARM PLAYER HANDSHAKE ---
+        // --- STABLE PLAYER NODE LINK CORES ---
         function connectTo90BallHost() {
             let nameInput = document.getElementById('playerNameInput').value.trim();
             const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
@@ -359,25 +370,24 @@
 
             document.getElementById('playerCodeDisplay').innerText = targetedCodeInput;
             document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
-            document.getElementById('playerStatus').innerText = "Status: Connecting to internet global tracking cluster...";
+            document.getElementById('playerStatus').innerText = "Status: Linking cloud relay stream...";
 
-            // Establish zero-config web-wide pipeline connection directly to the active host computer
-            networkSwarmInstance = new Bugout(`90_BALL_BINGO_ROOM_${targetedCodeInput}`);
+            // Open web-link path matching the host channel metrics
+            webSocketBridge = new WebSocket(`wss://us-node.piehost.com/v1/ping?apikey=${publicApiKey}&channel=BINGO_ROOM_${targetedCodeInput}`);
             
+            webSocketBridge.onopen = () => {
+                document.getElementById('playerStatus').innerText = "Status: Handshake Complete!";
+                // Request host synchronization package frames 
+                broadcastSocketPayload({ actionType: 'PLAYER_REQUEST_JOIN' });
+                
+                document.getElementById('setupScreen').className = 'screen';
+                document.getElementById('playerScreen').className = 'screen active';
+            };
+
             attachPlayerTrafficListeners();
-
-            // Send handshake parameter data packets out over the web structure
-            networkSwarmInstance.on("seen", (address) => {
-                document.getElementById('playerStatus').innerText = "Status: Direct data path established!";
-                networkSwarmInstance.send(address, { actionType: 'PLAYER_REQUEST_JOIN' });
-            });
-
             generate90BallTicketStructure();
             backupStateToLocalStorage();
             draw3x9PlayerTicketGrid();
-
-            document.getElementById('setupScreen').className = 'screen';
-            document.getElementById('playerScreen').className = 'screen active';
         }
 
         function attemptStateRecovery() {
@@ -391,16 +401,16 @@
             document.getElementById('playerCodeDisplay').innerText = oldRoom;
             document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
 
-            networkSwarmInstance = new Bugout(`90_BALL_BINGO_ROOM_${oldRoom}`);
+            webSocketBridge = new WebSocket(`wss://us-node.piehost.com/v1/ping?apikey=${publicApiKey}&channel=BINGO_ROOM_${oldRoom}`);
+            
+            webSocketBridge.onopen = () => {
+                broadcastSocketPayload({ actionType: 'PLAYER_REQUEST_JOIN' });
+                document.getElementById('setupScreen').className = 'screen';
+                document.getElementById('playerScreen').className = 'screen active';
+            };
+
             attachPlayerTrafficListeners();
-            
-            networkSwarmInstance.on("seen", (address) => {
-                networkSwarmInstance.send(address, { actionType: 'PLAYER_REQUEST_JOIN' });
-            });
-            
             draw3x9PlayerTicketGrid();
-            document.getElementById('setupScreen').className = 'screen';
-            document.getElementById('playerScreen').className = 'screen active';
         }
 
         function backupStateToLocalStorage() {
@@ -411,7 +421,8 @@
         }
 
         function attachPlayerTrafficListeners() {
-            networkSwarmInstance.on("message", (address, data) => {
+            webSocketBridge.onmessage = (event) => {
+                const data = JSON.parse(event.data);
                 if (data.actionType === 'INITIAL_STATE_SYNC') {
                     localEngineState.calledNumbersList = data.historyLog;
                     localEngineState.gameStage = data.currentStage;
@@ -434,7 +445,12 @@
                 } else if (data.actionType === 'BROADCAST_WINNER_STATE') {
                     launchWinnerBanner(data.winnerNameDetails);
                 }
-            });
+            };
+
+            webSocketBridge.onclose = () => {
+                alert("Connection pipeline dropped. Refreshing room token.");
+                window.location.reload();
+            };
         }
 
         function generate90BallTicketStructure() {
@@ -520,7 +536,7 @@
                 rowMarksCount[r]++;
             });
 
-            networkSwarmInstance.send({
+            broadcastSocketPayload({
                 actionType: 'TRANSMIT_BINGO_CLAIM',
                 senderProfileName: localEngineState.playerName,
                 rowLineWeights: rowMarksCount,
@@ -531,6 +547,8 @@
         }
 
         function evaluateIncomingBingoClaim(payload) {
+            if (localEngineState.role !== 'host') return; // Server-side isolation logic loop guard
+
             let cleanVerify = true;
             payload.activeMarksSnapshot.forEach(idx => {
                 let val = payload.flatListSnapshot[idx];
@@ -558,8 +576,8 @@
                 localEngineState.gameStage = nextStage;
                 syncStageBadges();
 
-                networkSwarmInstance.send({ actionType: 'BROADCAST_WINNER_STATE', winnerNameDetails: winDetails });
-                networkSwarmInstance.send({ actionType: 'STAGE_ADVANCED', nextStage: nextStage });
+                broadcastSocketPayload({ actionType: 'BROADCAST_WINNER_STATE', winnerNameDetails: winDetails });
+                broadcastSocketPayload({ actionType: 'STAGE_ADVANCED', nextStage: nextStage });
             }
         }
 
