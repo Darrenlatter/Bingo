@@ -89,10 +89,9 @@
     <div class="container">
         <header>
             <h1>PRO 90-BALL BINGO MATRIX</h1>
-            <p>Casino-Grade Multi-Stage P2P Engine with Resilience System</p>
+            <p>Casino-Grade Multi-Stage P2P Engine with Hardened Handshake Framework</p>
         </header>
 
-        <!-- WINNER DETECTED FULL BANNER SYSTEM -->
         <div id="winnerBanner" class="winner-banner">
             🏆 WINNER DETECTED! 🏆
             <span id="winnerBannerDetails" class="winner-subtext">Player Verified</span>
@@ -246,7 +245,7 @@
             if (pb) pb.innerText = localEngineState.gameStage;
         }
 
-        // --- HOST CORES ---
+        // --- HOST SYSTEM CORES ---
         function start90BallHost() {
             document.getElementById('hostStatus').innerText = "Status: Provisioning signaling path...";
             document.getElementById('hostBtn').disabled = true;
@@ -279,6 +278,7 @@
             });
 
             p2pInstance.on('error', (err) => {
+                console.error(err);
                 alert("Signaling pipeline fault. Reset system parameters.");
                 document.getElementById('hostBtn').disabled = false;
                 document.getElementById('hostStatus').innerText = "Status: Error";
@@ -358,12 +358,11 @@
             });
         }
 
-        // --- STABLE PLAYER NODE HANDSHAKE SECTOR ---
+        // --- HARDENED EVENT-DRIVEN PLAYER HANDSHAKE CHAIN ---
         function connectTo90BallHost() {
             let nameInput = document.getElementById('playerNameInput').value.trim();
             const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
             
-            // Fault Intervention Layer: Fallback name allocation
             if (!nameInput) {
                 nameInput = "Guest_" + Math.floor(1000 + Math.random() * 9000);
                 document.getElementById('playerNameInput').value = nameInput;
@@ -375,13 +374,22 @@
             }
 
             localEngineState.playerName = nameInput;
-            document.getElementById('playerStatus').innerText = "Status: Resolving signal path...";
+            document.getElementById('playerStatus').innerText = "Status: Registering with cloud broker...";
             document.getElementById('joinBtn').disabled = true;
 
-            p2pInstance = new Peer();
+            // Generate a transient, deterministic explicit client peer ID string mapping
+            const cleanPlayerIdToken = `PLAYER-${Math.floor(100000 + Math.random() * 900000)}`;
+            p2pInstance = new Peer(cleanPlayerIdToken);
 
-            p2pInstance.on('open', () => {
-                backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`);
+            // EVENT CHAIN STEP 1: Handshake with global server completes successfully
+            p2pInstance.on('open', (assignedId) => {
+                document.getElementById('playerStatus').innerText = "Status: Cloud registered! Opening direct data pipeline...";
+                
+                // EVENT CHAIN STEP 2: Instantiates pipe connection safely now that client node signature context exists
+                backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`, {
+                    reliable: true
+                });
+
                 backboneChannel.on('open', () => {
                     localEngineState.role = 'player';
                     localEngineState.roomCode = targetedCodeInput;
@@ -400,10 +408,10 @@
             });
 
             p2pInstance.on('error', (err) => {
-                console.error("PeerJS Client Crash Prevented:", err);
-                alert("Connection refused. Verify room code is active on Host dashboard.");
+                console.error("Hardened Handshake Intercept Trap:", err);
+                alert("Connection routing failure. Make sure Room Code matches Host perfectly.");
                 document.getElementById('joinBtn').disabled = false;
-                document.getElementById('playerStatus').innerText = "Status: Failed Node Sync";
+                document.getElementById('playerStatus').innerText = "Status: Connection Refused";
             });
         }
 
@@ -413,9 +421,11 @@
             localEngineState.playerName = localStorage.getItem('bingo_backup_name') || 'Anonymous';
             const oldRoom = localStorage.getItem('bingo_backup_room');
 
-            p2pInstance = new Peer();
+            const recoveryIdToken = `PLAYER-REC-${Math.floor(100000 + Math.random() * 900000)}`;
+            p2pInstance = new Peer(recoveryIdToken);
+            
             p2pInstance.on('open', () => {
-                backboneChannel = p2pInstance.connect(`ROOM-${oldRoom}`);
+                backboneChannel = p2pInstance.connect(`ROOM-${oldRoom}`, { reliable: true });
                 backboneChannel.on('open', () => {
                     localEngineState.role = 'player';
                     localEngineState.roomCode = oldRoom;
@@ -461,6 +471,11 @@
                 } else if (data.actionType === 'BROADCAST_WINNER_STATE') {
                     launchWinnerBanner(data.winnerNameDetails);
                 }
+            });
+
+            backboneChannel.on('close', () => {
+                alert("Loss of synchronization stream. Upstream host room has terminated.");
+                window.location.reload();
             });
         }
 
@@ -594,27 +609,6 @@
                 });
             } else {
                 alert(`Claim from [${payload.senderProfileName}] evaluated: Insufficient row weights for stage [${localEngineState.gameStage}].`);
-            }
-        }
-
-        function executeManualAudit() {
-            const raw = document.getElementById('auditInput').value.trim();
-            const resultsBox = document.getElementById('auditResultsBox');
-            const parsedArray = raw.split(/[\s,]+/).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
-
-            let faults = [];
-            parsedArray.forEach(v => {
-                if (!localEngineState.calledNumbersList.includes(v)) faults.push(v);
-            });
-
-            resultsBox.style.display = "block";
-            if (faults.length === 0 && parsedArray.length > 0) {
-                resultsBox.className = "audit-results audit-pass";
-                resultsBox.innerHTML = `<strong>MANUAL PASS</strong><br>All values verified against called history.`;
-                launchWinnerBanner("Manual Ticket Checked & Confirmed Valid!");
-            } else {
-                resultsBox.className = "audit-results audit-fail";
-                resultsBox.innerHTML = `<strong>MANUAL FAIL</strong><br>Uncalled items: ${faults.join(', ')}`;
             }
         }
     </script>
