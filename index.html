@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global P2P Bingo Multi-Device Engine</title>
-    <!-- External WebRTC Signalling Link -->
+    <title>90-Ball Distributed Bingo Engine & Audit Terminal</title>
+    <!-- WebRTC Signalling Layer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
     <style>
         :root {
@@ -22,13 +22,13 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--dark-bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 2.5rem; }
         header h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
         header p { color: var(--text-muted); }
         .screen { display: none; }
         .screen.active { display: block; }
-        .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); margin-bottom: 1.5rem; }
         .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
@@ -37,122 +37,129 @@
         .btn-success:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; }
         input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1.25rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
-        input[type="text"]:focus { outline: 2px solid var(--primary); }
-        .host-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
-        @media (max-width: 768px) { .host-layout { grid-template-columns: 1fr; } }
-        .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); }
-        .ball { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%); color: #0f172a; font-size: 3.5rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 1rem; }
-        .tracker-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 0.35rem; margin-top: 1rem; }
-        .tracker-cell { background-color: var(--dark-bg); border: 1px solid var(--border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
+        .host-layout { display: grid; grid-template-columns: 1fr 2.2fr; gap: 1.5rem; }
+        @media (max-width: 900px) { .host-layout { grid-template-columns: 1fr; } }
+        .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 220px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); }
+        .ball { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%); color: #0f172a; font-size: 3.25rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 0.5rem; }
+        .tracker-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.35rem; margin-top: 1rem; }
+        .tracker-cell { background-color: var(--dark-bg); border: 1px solid var(--border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
         .tracker-cell.called { background-color: var(--success); color: white; border-color: transparent; box-shadow: 0 0 8px rgba(22, 163, 74, 0.4); }
-        .bingo-board-container { max-width: 550px; margin: 0 auto; }
-        .bingo-headers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 0.5rem; }
-        .bingo-header { font-size: 1.75rem; font-weight: 900; color: var(--gold); }
-        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
-        .bingo-cell { background-color: var(--dark-bg); border: 2px solid var(--border); aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; cursor: pointer; user-select: none; }
-        .bingo-cell.marked { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); border-color: transparent; color: white; position: relative; }
-        .bingo-cell.marked::after { content: ''; position: absolute; width: 70%; height: 70%; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; }
-        .bingo-cell.free-space { font-size: 0.75rem; color: var(--gold); text-transform: uppercase; text-align: center; }
+        
+        /* 90-Ball Ticket UI Specifications (3x9) */
+        .ticket-container { max-width: 750px; margin: 0 auto; }
+        .ticket-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0.25rem; background-color: var(--dark-bg); padding: 0.5rem; border-radius: 8px; border: 2px solid var(--border); }
+        .ticket-cell { aspect-ratio: 1; background-color: #1e293b; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--text); cursor: pointer; user-select: none; border-radius: 4px; }
+        @media (max-width: 600px) { .ticket-cell { font-size: 1rem; } }
+        .ticket-cell.blank { background-color: #0f172a; cursor: not-allowed; opacity: 0.4; }
+        .ticket-cell.marked { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); border-color: transparent; color: white; position: relative; }
+        .ticket-cell.marked::after { content: '✕'; position: absolute; font-size: 1.8rem; color: rgba(234, 179, 8, 0.6); font-weight: 300; }
+        
         .game-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
         .alert-banner { background-color: var(--gold); color: #0f172a; padding: 1rem; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: none; }
         .status-tracker { background-color: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; border: 1px solid var(--border); }
+        
+        /* Manual Checker Layout Styles */
+        .manual-audit-box { display: flex; gap: 0.75rem; margin-top: 1rem; }
+        .audit-results { font-size: 0.9rem; font-weight: 600; margin-top: 1rem; padding: 0.75rem; border-radius: 6px; display: none; }
+        .audit-pass { background-color: rgba(22, 163, 74, 0.2); border: 1px solid var(--success); color: #4ade80; }
+        .audit-fail { background-color: rgba(220, 38, 38, 0.2); border: 1px solid var(--danger); color: #f87171; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>Scout BINGO</h1>
-            <p>44th Croydon Air Scouts</p>
+            <h1>PRO 90-BALL BINGO MATRIX</h1>
+            <p>International 3x9 Ticket Sync Engine & Manual Audit Terminal</p>
         </header>
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <!-- SCREEN 1: Role Setup Selection -->
+        <!-- SCREEN 1: Setup Architecture selection -->
         <div id="setupScreen" class="screen active">
             <div class="setup-grid">
-                <!-- Host Initialization -->
                 <div class="card">
-                    <h2>Host Panel</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Act as the primary room node. Draws numbers and broadcasts telemetry.</p>
-                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="startHostNode()">Create Host Room</button>
-                    <div id="hostStatus" class="status-tracker">Status: Ready to initialize</div>
+                    <h2>Host Broadcast Node</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize a 1-90 ball caller configuration with real-time stream encryption and integrated validation terminal.</p>
+                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="start90BallHost()">Initialize Caller Node</button>
+                    <div id="hostStatus" class="status-tracker">Status: Ready</div>
                 </div>
 
-                <!-- Player Connection -->
                 <div class="card">
-                    <h2>Player Panel</h2>
-                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Connect directly to a host room across any network or device via room token.</p>
+                    <h2>Join Active Room</h2>
+                    <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Generate a compliant 3-row, 9-column international ticket matching active host stream metrics.</p>
                     <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT CODE" maxlength="5">
-                    <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectToHostNode()">Join Host Room</button>
-                    <div id="playerStatus" class="status-tracker">Status: Awaiting input parameters</div>
+                    <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectTo90BallHost()">Connect Ticket Node</button>
+                    <div id="playerStatus" class="status-tracker">Status: Awaiting coordinates</div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: Authoritative Host Board -->
+        <!-- SCREEN 2: Host Interface Matrix & Verification Console -->
         <div id="hostScreen" class="screen">
             <div class="game-meta">
-                <div>Broadcasting Code: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
-                <div>Numbers Pulled: <strong id="drawnCount">0</strong>/75</div>
+                <div>Broadcasting Token ID: <strong id="hostCodeDisplay" style="color: var(--primary); font-size: 1.25rem;">-----</strong></div>
+                <div>Extracted Counter: <strong id="drawnCount">0</strong>/90</div>
             </div>
+            
             <div class="host-layout">
-                <div class="card">
-                    <div class="current-number-display">
-                        <div id="ballDisplay" class="ball">--</div>
-                        <h3 id="letterDisplay" style="color: var(--text-muted);">Awaiting First Draw</h3>
+                <div>
+                    <div class="card">
+                        <div class="current-number-display">
+                            <div id="ballDisplay" class="ball">--</div>
+                            <h3 style="color: var(--text-muted);">Current Call</h3>
+                        </div>
+                        <button class="btn btn-success" style="width: 100%; margin-top: 1rem; padding: 0.85rem;" onclick="draw90BallNumber()">Execute Drawing</button>
                     </div>
-                    <button class="btn btn-success" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="generateNextNumber()">Draw Number</button>
+
+                    <!-- MANUAL AUDITING TERMINAL -->
+                    <div class="card">
+                        <h3>Manual Card Verification Terminal</h3>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0.25rem 0 0.75rem 0;">Type or paste an individual space-separated string array of values from an audited ticket card to cross-reference against drawn memory history.</p>
+                        <div class="manual-audit-box">
+                            <input type="text" id="auditInput" placeholder="e.g. 12 24 45 67 88" style="margin: 0; font-size: 1rem;">
+                            <button class="btn btn-primary" onclick="executeManualAudit()">Verify</button>
+                        </div>
+                        <div id="auditResultsBox" class="audit-results"></div>
+                    </div>
                 </div>
+
                 <div class="card">
-                    <h3>Master Telemetry Matrix Grid</h3>
+                    <h3>Master 90-Ball Numerical History Pool</h3>
                     <div id="trackerGrid" class="tracker-grid"></div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 3: Player Card Grid -->
+        <!-- SCREEN 3: Player Active International Layout Matrix -->
         <div id="playerScreen" class="screen">
-            <div class="bingo-board-container">
+            <div class="ticket-container">
                 <div class="game-meta">
-                    <div>Connected to Room: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
-                    <button class="btn btn-danger" onclick="executeBingoClaim()">Call BINGO!</button>
+                    <div>Paired Session: <strong id="playerCodeDisplay" style="color: var(--success);">-----</strong></div>
+                    <button class="btn btn-danger" onclick="transmitBingoClaim()">Call BINGO / Housie!</button>
                 </div>
-                <div class="card">
-                    <div class="bingo-headers">
-                        <div class="bingo-header">B</div>
-                        <div class="bingo-header">I</div>
-                        <div class="bingo-header">N</div>
-                        <div class="bingo-header">G</div>
-                        <div class="bingo-header">O</div>
-                    </div>
-                    <div id="bingoGrid" class="bingo-grid"></div>
+                <h3 style="margin-bottom: 0.5rem; text-align: center; color: var(--gold); letter-spacing: 0.1em;">OFFICIAL 3x9 INTERNATIONAL TICKET</h3>
+                <div class="card" style="padding: 0.7rem;">
+                    <div id="ticketGrid" class="ticket-grid"></div>
                 </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-top: 0.5rem;">Standard 90-ball rules require lines or complete full houses to claim validation status.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- System State Globals ---
+        // --- Core Application Storage Layer ---
         let p2pInstance = null;
-        let streamingChannels = []; // Host client router lists
-        let backboneChannel = null;  // Player link pipeline out
+        let streamingChannels = []; 
+        let backboneChannel = null;  
 
         let localEngineState = {
             role: null,
             roomCode: '',
             calledNumbersList: [],
-            cardDataMatrix: [],
-            activeMarks: [[2, 2]] // Start with centered FREE space checked
+            ticketFlatList: Array(27).fill(0), // Raw 3x9 tracking structures
+            activeMarks: [] 
         };
-
-        function getBingoColumnLetter(value) {
-            if (value <= 15) return 'B';
-            if (value <= 30) return 'I';
-            if (value <= 45) return 'N';
-            if (value <= 60) return 'G';
-            return 'O';
-        }
 
         function triggerUINotification(message) {
             const displayBanner = document.getElementById('alertBanner');
@@ -161,21 +168,19 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- HOST SIDE TELEMETRY CONTROLS ---
-        function startHostNode() {
-            document.getElementById('hostStatus').innerText = "Status: Provisioning cloud peer registration...";
+        // --- HOST LOGIC SECTOR ---
+        function start90BallHost() {
+            document.getElementById('hostStatus').innerText = "Status: Spinning protocol thread...";
             document.getElementById('hostBtn').disabled = true;
 
-            // Generate a true isolated random 5 digit room key
             const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
-            
             p2pInstance = new Peer(`ROOM-${uniqueRoomKey}`);
 
-            p2pInstance.on('open', (id) => {
+            p2pInstance.on('open', () => {
                 localEngineState.role = 'host';
                 localEngineState.roomCode = uniqueRoomKey;
                 document.getElementById('hostCodeDisplay').innerText = uniqueRoomKey;
-                buildHostTrackingGrid();
+                build90BallTrackingGrid();
 
                 document.getElementById('setupScreen').classList.remove('active');
                 document.getElementById('hostScreen').classList.add('active');
@@ -183,9 +188,7 @@
 
             p2pInstance.on('connection', (incomingChannel) => {
                 streamingChannels.push(incomingChannel);
-                
                 incomingChannel.on('open', () => {
-                    // Instantly seed joining client with absolute global state
                     incomingChannel.send({ 
                         actionType: 'INITIAL_STATE_SYNC', 
                         historyLog: localEngineState.calledNumbersList 
@@ -200,17 +203,16 @@
             });
 
             p2pInstance.on('error', (err) => {
-                console.error("Peer Error:", err);
-                alert("Signaling conflict or cloud response failure. Resetting client engine.");
+                alert("Signaling pipeline fault. Reset system parameters.");
                 document.getElementById('hostBtn').disabled = false;
-                document.getElementById('hostStatus').innerText = "Status: Error. Retrying connection standard...";
+                document.getElementById('hostStatus').innerText = "Status: Error";
             });
         }
 
-        function buildHostTrackingGrid() {
+        function build90BallTrackingGrid() {
             const referenceGridElement = document.getElementById('trackerGrid');
             referenceGridElement.innerHTML = '';
-            for (let index = 1; index <= 75; index++) {
+            for (let index = 1; index <= 90; index++) {
                 const matrixNode = document.createElement('div');
                 matrixNode.className = 'tracker-cell';
                 matrixNode.id = `host-track-node-${index}`;
@@ -219,25 +221,23 @@
             }
         }
 
-        function generateNextNumber() {
-            if (localEngineState.calledNumbersList.length >= 75) {
-                triggerUINotification("Game Loop Terminated. Entire field exhausted.");
+        function draw90BallNumber() {
+            if (localEngineState.calledNumbersList.length >= 90) {
+                triggerUINotification("All 90 numbers extracted. Game context closed.");
                 return;
             }
 
             let randomSelection;
             do {
-                randomSelection = Math.floor(Math.random() * 75) + 1;
+                randomSelection = Math.floor(Math.random() * 90) + 1;
             } while (localEngineState.calledNumbersList.includes(randomSelection));
 
             localEngineState.calledNumbersList.push(randomSelection);
             
             document.getElementById('ballDisplay').innerText = randomSelection;
-            document.getElementById('letterDisplay').innerText = `${getBingoColumnLetter(randomSelection)} - ${randomSelection}`;
             document.getElementById(`host-track-node-${randomSelection}`).classList.add('called');
             document.getElementById('drawnCount').innerText = localEngineState.calledNumbersList.length;
 
-            // Broadcast matrix emission mutation out to all global connections
             streamingChannels.forEach(channel => {
                 if (channel.open) {
                     channel.send({ 
@@ -249,20 +249,65 @@
             });
         }
 
-        // --- PLAYER CARD INTERACTIVE LOGIC ---
-        function connectToHostNode() {
-            const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
-            if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
-                alert("System Alert: Connection coordinates must match exactly a 5-digit number configuration.");
+        // --- INTEGRATED MANUAL VERIFICATION ENGINE ---
+        function executeManualAudit() {
+            const auditRawInput = document.getElementById('auditInput').value.trim();
+            const resultsBox = document.getElementById('auditResultsBox');
+            
+            if (!auditRawInput) {
+                resultsBox.style.display = "block";
+                resultsBox.className = "audit-results audit-fail";
+                resultsBox.innerText = "Error: Inspection field blank.";
                 return;
             }
 
-            document.getElementById('playerStatus').innerText = "Status: Locating remote node route...";
+            // Parse numbers using a clean regex filter to split on commas or spaces
+            const candidatesArray = auditRawInput.split(/[\s,]+/).map(num => parseInt(num, 10)).filter(num => !isNaN(num));
+
+            if (candidatesArray.length === 0) {
+                resultsBox.style.display = "block";
+                resultsBox.className = "audit-results audit-fail";
+                resultsBox.innerText = "Error: No valid numerical arrays parsed.";
+                return;
+            }
+
+            let validatedPullsList = [];
+            let verificationFaultsList = [];
+
+            candidatesArray.forEach(val => {
+                if (val < 1 || val > 90) {
+                    verificationFaultsList.push(`${val} (Out of Range)`);
+                } else if (localEngineState.calledNumbersList.includes(val)) {
+                    validatedPullsList.push(val);
+                } else {
+                    verificationFaultsList.push(val);
+                }
+            });
+
+            resultsBox.style.display = "block";
+            if (verificationFaultsList.length === 0) {
+                resultsBox.className = "audit-results audit-pass";
+                resultsBox.innerHTML = `<strong>CARD AUDIT VERIFIED [PASS]</strong><br>All ${validatedPullsList.length} values exist inside the drawn history pool. Solid legal win.`;
+            } else {
+                resultsBox.className = "audit-results audit-fail";
+                resultsBox.innerHTML = `<strong>CARD AUDIT FALSIFIED [FAIL]</strong><br>Uncalled/Invalid numbers detected: ${verificationFaultsList.join(', ')}<br><span style="font-size:0.8rem;">Drawn matches found: ${validatedPullsList.length > 0 ? validatedPullsList.join(', ') : 'None'}</span>`;
+            }
+        }
+
+        // --- PLAYER INTERACTIVE TICKET LAYOUT SECTOR ---
+        function connectTo90BallHost() {
+            const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
+            if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
+                alert("Room codes must consist of exactly 5 numeric keys.");
+                return;
+            }
+
+            document.getElementById('playerStatus').innerText = "Status: Resolving signal path...";
             document.getElementById('joinBtn').disabled = true;
 
             p2pInstance = new Peer();
 
-            p2pInstance.on('open', (assignedGlobalId) => {
+            p2pInstance.on('open', () => {
                 backboneChannel = p2pInstance.connect(`ROOM-${targetedCodeInput}`);
 
                 backboneChannel.on('open', () => {
@@ -270,155 +315,141 @@
                     localEngineState.roomCode = targetedCodeInput;
                     document.getElementById('playerCodeDisplay').innerText = targetedCodeInput;
                     
-                    generateRandomBingoMatrix();
-                    drawInteractivePlayerGrid();
+                    generate90BallTicketStructure();
+                    draw3x9PlayerTicketGrid();
 
                     document.getElementById('setupScreen').classList.remove('active');
                     document.getElementById('playerScreen').classList.add('active');
                 });
 
                 backboneChannel.on('data', (incomingBroadcast) => {
-                    if (incomingBroadcast.actionType === 'INITIAL_STATE_SYNC') {
-                        localEngineState.calledNumbersList = incomingBroadcast.historyLog;
-                    } else if (incomingBroadcast.actionType === 'EMIT_NUMBER_DRAW') {
+                    if (incomingBroadcast.actionType === 'INITIAL_STATE_SYNC' || incomingBroadcast.actionType === 'EMIT_NUMBER_DRAW') {
                         localEngineState.calledNumbersList = incomingBroadcast.historyLog;
                     }
                 });
 
                 backboneChannel.on('close', () => {
-                    alert("Loss of upstream sync. Host terminated connection channel pipeline.");
+                    alert("Upstream host interface connection reset.");
                     window.location.reload();
                 });
             });
 
             p2pInstance.on('error', (err) => {
-                console.error("Client side peer error:", err);
-                alert("Network Routing Failure: Room code not found on the live global cloud server.");
+                alert("Failed to sync room. Confirm tracking index sequence handles on Host.");
                 document.getElementById('joinBtn').disabled = false;
-                document.getElementById('playerStatus').innerText = "Status: Connection Refused";
+                document.getElementById('playerStatus').innerText = "Status: Refused";
             });
         }
 
-        function generateRandomBingoMatrix() {
-            const coordinatePools = {
-                B: Array.from({length: 15}, (_, v) => v + 1),
-                I: Array.from({length: 15}, (_, v) => v + 16),
-                N: Array.from({length: 15}, (_, v) => v + 31),
-                G: Array.from({length: 15}, (_, v) => v + 46),
-                O: Array.from({length: 15}, (_, v) => v + 61)
-            };
+        function generate90BallTicketStructure() {
+            // Step 1: Instantiate exact numeric sequence brackets for the 9 columns
+            let columnRanges = [
+                Array.from({length: 9},  (_, i) => i + 1),  // 1-9
+                Array.from({length: 10}, (_, i) => i + 10), // 10-19
+                Array.from({length: 10}, (_, i) => i + 20), // 20-29
+                Array.from({length: 10}, (_, i) => i + 30), // 30-39
+                Array.from({length: 10}, (_, i) => i + 40), // 40-49
+                Array.from({length: 10}, (_, i) => i + 50), // 50-59
+                Array.from({length: 10}, (_, i) => i + 60), // 60-69
+                Array.from({length: 10}, (_, i) => i + 70), // 70-79
+                Array.from({length: 11}, (_, i) => i + 80)  // 80-90
+            ];
 
-            const randomizeArrayOrder = (targetArray) => targetArray.sort(() => Math.random() - 0.5);
-            Object.keys(coordinatePools).forEach(key => randomizeArrayOrder(coordinatePools[key]));
+            // Shuffle sub-ranges
+            const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
+            columnRanges.forEach(range => shuffle(range));
 
-            localEngineState.cardDataMatrix = [];
-            for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
-                localEngineState.cardDataMatrix[rowIdx] = [];
-                localEngineState.cardDataMatrix[rowIdx][0] = coordinatePools.B[rowIdx];
-                localEngineState.cardDataMatrix[rowIdx][1] = coordinatePools.I[rowIdx];
-                localEngineState.cardDataMatrix[rowIdx][2] = (rowIdx === 2) ? 0 : coordinatePools.N[rowIdx];
-                localEngineState.cardDataMatrix[rowIdx][3] = coordinatePools.G[rowIdx];
-                localEngineState.cardDataMatrix[rowIdx][4] = coordinatePools.O[rowIdx];
-            }
-        }
+            // Allocate an internal raw working matrix template frame
+            let allocationGrid = Array(3).fill(0).map(() => Array(9).fill(0));
 
-        function drawInteractivePlayerGrid() {
-            const visualGridContainer = document.getElementById('bingoGrid');
-            visualGridContainer.innerHTML = '';
-            
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 5; c++) {
-                    const structuralValue = localEngineState.cardDataMatrix[r][c];
-                    const gridCellElement = document.createElement('div');
-                    gridCellElement.className = 'bingo-cell';
-                    
-                    if (r === 2 && c === 2) {
-                        gridCellElement.classList.add('marked', 'free-space');
-                        gridCellElement.innerText = "FREE";
-                    } else {
-                        gridCellElement.innerText = structuralValue;
-                        gridCellElement.onclick = () => interceptCellMarkAction(r, c, structuralValue, gridCellElement);
+            // Populate exactly 5 numbers across each individual row keeping indices bounds correct
+            for (let r = 0; r < 3; r++) {
+                let numbersPlacedIndices = [];
+                while (numbersPlacedIndices.length < 5) {
+                    let randomCol = Math.floor(Math.random() * 9);
+                    if (!numbersPlacedIndices.includes(randomCol) && allocationGrid[r][randomCol] === 0) {
+                        numbersPlacedIndices.push(randomCol);
                     }
-                    visualGridContainer.appendChild(gridCellElement);
                 }
+                
+                numbersPlacedIndices.forEach(colIndex => {
+                    allocationGrid[r][colIndex] = columnRanges[colIndex].pop();
+                });
+            }
+
+            // Collapse multi-dimensional workspace array down to an indexing-flat storage block
+            localEngineState.ticketFlatList = allocationGrid.flat();
+        }
+
+        function draw3x9PlayerTicketGrid() {
+            const targetContainerGrid = document.getElementById('ticketGrid');
+            targetContainerGrid.innerHTML = '';
+
+            for (let targetIndex = 0; targetIndex < 27; targetIndex++) {
+                const numericalMatrixVal = localEngineState.ticketFlatList[targetIndex];
+                const cellDomElement = document.createElement('div');
+                
+                if (numericalMatrixVal === 0) {
+                    cellDomElement.className = 'ticket-cell blank';
+                } else {
+                    cellDomElement.className = 'ticket-cell';
+                    cellDomElement.innerText = numericalMatrixVal;
+                    cellDomElement.onclick = () => processTicketInteraction(targetIndex, numericalMatrixVal, cellDomElement);
+                }
+                targetContainerGrid.appendChild(cellDomElement);
             }
         }
 
-        function interceptCellMarkAction(row, col, evaluatedValue, domElement) {
-            // CRITICAL SYSTEM VALIDATION INTERCEPT
-            // Restricts toggle state changes unless number matches active server pool
-            if (!localEngineState.calledNumbersList.includes(evaluatedValue)) {
-                alert(`Rule Exception: Number [${evaluatedValue}] hasn't been pulled yet. Nice try!`);
+        function processTicketInteraction(linearIndex, targetedValue, htmlNode) {
+            if (!localEngineState.calledNumbersList.includes(targetedValue)) {
+                alert(`Rule Protection: [${targetedValue}] has not been announced by the Host execution core.`);
                 return;
             }
 
-            const activeIndexPosition = localEngineState.activeMarks.findIndex(pt => pt[0] === row && pt[1] === col);
-            if (activeIndexPosition > -1) {
-                localEngineState.activeMarks.splice(activeIndexPosition, 1);
-                domElement.classList.remove('marked');
+            const selectionTrackingOffset = localEngineState.activeMarks.indexOf(linearIndex);
+            if (selectionTrackingOffset > -1) {
+                localEngineState.activeMarks.splice(selectionTrackingOffset, 1);
+                htmlNode.classList.remove('marked');
             } else {
-                localEngineState.activeMarks.push([row, col]);
-                domElement.classList.add('marked');
+                localEngineState.activeMarks.push(linearIndex);
+                htmlNode.classList.add('marked');
             }
         }
 
-        // --- DISTRIBUTED ARBITRATION VALIDATION LAYER ---
-        function executeBingoClaim() {
-            let computationalCheckField = Array(5).fill(0).map(() => Array(5).fill(false));
-            localEngineState.activeMarks.forEach(([r, c]) => { computationalCheckField[r][c] = true; });
-
-            let matrixPatternConfirmed = false;
-
-            // Horizontal verification sweep
-            for (let r = 0; r < 5; r++) { if (computationalCheckField[r].every(v => v === true)) matrixPatternConfirmed = true; }
-            // Vertical verification sweep
-            for (let c = 0; c < 5; c++) {
-                let verticalColumnValid = true;
-                for (let r = 0; r < 5; r++) { if (!computationalCheckField[r][c]) verticalColumnValid = false; }
-                if (verticalColumnValid) matrixPatternConfirmed = true;
+        // --- PLAYER AUTOMATED WIN VERIFICATION CLAIM BROADCAST ---
+        function transmitBingoClaim() {
+            if (localEngineState.activeMarks.length === 0) {
+                alert("No marked positions registered on data bus.");
+                return;
             }
-            // Angular intersecting path checks
-            let backDiagValid = true, forwardDiagValid = true;
-            for (let idx = 0; idx < 5; idx++) {
-                if (!computationalCheckField[idx][idx]) backDiagValid = false;
-                if (!computationalCheckField[idx][4 - idx]) forwardDiagValid = false;
-            }
-            if (backDiagValid || forwardDiagValid) matrixPatternConfirmed = true;
 
-            if (matrixPatternConfirmed) {
-                backboneChannel.send({
-                    actionType: 'TRANSMIT_BINGO_CLAIM',
-                    senderPeerId: p2pInstance.id,
-                    boardLayoutSnapshot: localEngineState.cardDataMatrix,
-                    selectedCoordinateLogs: localEngineState.activeMarks
-                });
-                triggerUINotification("Bingo tracking payload transmitted to caller. Awaiting remote host authentication.");
-            } else {
-                alert("Pattern Refused: The currently marked values do not complete a full row, column, or diagonal line.");
-            }
+            // Extrapolate verified flat index values directly into a clean raw values list
+            let numbersClaimedList = localEngineState.activeMarks.map(idx => localEngineState.ticketFlatList[idx]);
+
+            backboneChannel.send({
+                actionType: 'TRANSMIT_BINGO_CLAIM',
+                senderPeerId: p2pInstance.id,
+                valuesClaimedLog: numbersClaimedList
+            });
+            triggerUINotification("Housie data frame routed downstream to Host router. Awaiting verification parse...");
         }
 
         function evaluateIncomingBingoClaim(payload) {
-            let serverSideCheckMatrix = Array(5).fill(0).map(() => Array(5).fill(false));
-            let cryptographicProofPasses = true;
+            let computationalProofFails = false;
+            let authenticatedMatchesList = [];
 
-            payload.selectedCoordinateLogs.forEach(([r, c]) => {
-                if (r === 2 && c === 2) {
-                    serverSideCheckMatrix[r][c] = true;
-                    return;
+            payload.valuesClaimedLog.forEach(claimedVal => {
+                if (localEngineState.calledNumbersList.includes(claimedVal)) {
+                    authenticatedMatchesList.push(claimedVal);
+                } else {
+                    computationalProofFails = true;
                 }
-                const correspondingValue = payload.boardLayoutSnapshot[r][c];
-                // Absolute truth cross-check
-                if (!localEngineState.calledNumbersList.includes(correspondingValue)) {
-                    cryptographicProofPasses = false;
-                }
-                serverSideCheckMatrix[r][c] = true;
             });
 
-            if (cryptographicProofPasses) {
-                triggerUINotification(`🏆 BINGO CONFIRMED! Player device connected as [${payload.senderPeerId.substring(0, 5)}] has achieved a valid pattern line match!`);
+            if (!computationalProofFails && authenticatedMatchesList.length > 0) {
+                triggerUINotification(`🏆 HOUSE WINNER DETECTED! Node ID [${payload.senderPeerId.substring(0, 5)}] verified. Checked matches list: ${authenticatedMatchesList.join(', ')}`);
             } else {
-                console.error("Security alert: Client failed authoritative validation loop.");
+                alert(`Notice: Claim received from player node [${payload.senderPeerId.substring(0, 5)}] failed validation protocols.`);
             }
         }
     </script>
