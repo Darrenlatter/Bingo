@@ -33,19 +33,19 @@
         .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
         .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-success { background-color: var(--success); color: white; }
+        .btn-success:disabled { background-color: var(--border); cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; }
         
         input[type="text"] { width: 100%; padding: 0.75rem 1rem; background-color: var(--dark-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1.15rem; margin-bottom: 1rem; letter-spacing: 0.05em; text-align: center; }
         .host-layout { display: grid; grid-template-columns: 1fr 2.2fr; gap: 1.5rem; }
         @media (max-width: 900px) { .host-layout { grid-template-columns: 1fr; } }
         
-        /* Modern Display Board Layout */
         .current-number-display { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-radius: 12px; border: 2px dashed var(--border); padding: 1rem; position: relative;}
         .ball { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #cbd5e1 50%, #64748b 100%); color: #0f172a; font-size: 3.25rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 0.5rem; }
         .lingo-text { color: var(--gold); font-style: italic; font-size: 1.1rem; font-weight: 600; min-height: 1.5rem; text-align: center; margin-top: 0.25rem; }
         
-        /* Prior History Ribbon Tray */
         .history-tray { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); }
         .history-ball { width: 40px; height: 40px; border-radius: 50%; background: #475569; color: white; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
         
@@ -53,7 +53,6 @@
         .tracker-cell { background-color: var(--dark-bg); border: 1px solid var(--border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
         .tracker-cell.called { background-color: var(--success); color: white; border-color: transparent; box-shadow: 0 0 8px rgba(22, 163, 74, 0.4); }
         
-        /* 3x9 Ticket Rendering Modules */
         .ticket-container { max-width: 750px; margin: 0 auto; }
         .ticket-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0.25rem; background-color: var(--dark-bg); padding: 0.5rem; border-radius: 8px; border: 2px solid var(--border); }
         .ticket-cell { aspect-ratio: 1; background-color: #1e293b; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--text); cursor: pointer; user-select: none; border-radius: 4px; }
@@ -64,13 +63,11 @@
         
         .game-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
         
-        /* Display Banners UI Frame components */
         .alert-banner { background-color: var(--gold); color: #0f172a; padding: 1rem; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: none; font-size: 1.1rem; }
         .winner-banner { display: none; background: linear-gradient(90deg, #b45309, #d97706, #b45309); color: white; padding: 2rem 1rem; border-radius: 12px; text-align: center; font-size: 2.5rem; font-weight: 900; border: 4px solid var(--gold); box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); letter-spacing: 0.05em; text-transform: uppercase; animation: pulseGlow 1.5s infinite alternate; margin-bottom: 2rem; }
         @keyframes pulseGlow { 0% { transform: scale(0.99); } 100% { transform: scale(1.01); } }
         .winner-subtext { display: block; font-size: 1.2rem; font-weight: 600; margin-top: 0.5rem; color: #fef08a; }
         
-        /* Toggle Switch Architecture styling */
         .toggle-container { display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; }
         .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -84,6 +81,7 @@
         .audit-pass { background-color: rgba(22, 163, 74, 0.2); border: 1px solid var(--success); color: #4ade80; }
         .audit-fail { background-color: rgba(220, 38, 38, 0.2); border: 1px solid var(--danger); color: #f87171; }
         .stage-badge { background-color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 700; font-size: 0.85rem; color: white; letter-spacing: 0.05em;}
+        .status-tracker { background-color: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -94,6 +92,7 @@
             <p>Casino-Grade Multi-Stage P2P Engine with Resilience System</p>
         </header>
 
+        <!-- WINNER DETECTED FULL BANNER SYSTEM -->
         <div id="winnerBanner" class="winner-banner">
             🏆 WINNER DETECTED! 🏆
             <span id="winnerBannerDetails" class="winner-subtext">Player Verified</span>
@@ -107,16 +106,18 @@
                 <div class="card">
                     <h2>Host Broadcast Node</h2>
                     <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Initialize an authoritative master game controller session with voice synthesizer engine.</p>
-                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="start90BallHost()">Initialize Host Module</button>
+                    <button id="hostBtn" class="btn btn-primary" style="width: 100%;" onclick="start90BallHost()">Initialize Host Room</button>
+                    <div id="hostStatus" class="status-tracker">Status: Ready</div>
                 </div>
 
                 <div class="card">
                     <h2>Join Active Room</h2>
                     <p style="color: var(--text-muted); margin: 0.5rem 0 0.5rem 0;">Link ticket configuration matrices using a valid signature handle coordinate.</p>
-                    <input type="text" id="playerNameInput" placeholder="ENTER PLAYER NAME" maxlength="20">
+                    <input type="text" id="playerNameInput" placeholder="ENTER YOUR NAME (OPTIONAL)" maxlength="20">
                     <input type="text" id="joinGameCode" placeholder="ENTER 5-DIGIT ROOM CODE" maxlength="5">
                     <button id="joinBtn" class="btn btn-success" style="width: 100%;" onclick="connectTo90BallHost()">Connect Ticket Node</button>
                     <button id="recoveryBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; display:none;" onclick="attemptStateRecovery()">Recover Disconnected Board</button>
+                    <div id="playerStatus" class="status-tracker">Status: Awaiting coordinates</div>
                 </div>
             </div>
         </div>
@@ -188,11 +189,10 @@
     </div>
 
     <script>
-        // --- Traditional UK Call Lingo Definition Array ---
         const bingoLingoMatrix = {
             1: "Kelly's Eye", 2: "One Little Duck", 3: "Cup of Tea", 4: "Knock at the Door", 5: "Man Alive", 6: "Tom Mix", 7: "Lucky Seven", 8: "Garden Gate", 9: "Doctor's Orders", 10: "Cameron's Den",
             11: "Legs Eleven", 12: "One Dozen", 13: "Unlucky for Some", 14: "Valentine's Day", 15: "Young and Keen", 16: "Sweet Sixteen", 17: "Dancing Queen", 18: "Coming of Age", 19: "Goodbye Tens", 20: "One Score",
-            21: "Royal工nsignia", 22: "Two Little Ducks", 23: "Thee and Me", 24: "Two Dozen", 25: "Duck and Dive", 26: "Pick and Mix", 27: "Gateway to Heaven", 28: "In a State", 29: "Rise and Shine", 30: "Dirty Gertie",
+            21: "Royal Insignia", 22: "Two Little Ducks", 23: "Thee and Me", 24: "Two Dozen", 25: "Duck and Dive", 26: "Pick and Mix", 27: "Gateway to Heaven", 28: "In a State", 29: "Rise and Shine", 30: "Dirty Gertie",
             31: "Get Up and Run", 32: "Buckle My Shoe", 33: "Dirty Knee", 34: "Ask for More", 35: "Jump and Jive", 36: "Three Dozen", 37: "More than Eleven", 38: "Christmas Cake", 39: "Steps", 40: "Life Begins",
             41: "Time for Fun", 42: "Whallop!", 43: "Down on your Knee", 44: "Droopy Drawers", 45: "Halfway House", 46: "Up to Tricks", 47: "Four and Seven", 48: "Four Dozen", 49: "PC", 50: "Half a Century",
             51: "Tweak of the Thumb", 52: "Danny La Rue", 53: "Stuck in the Tree", 54: "Clean the Floor", 55: "Snakes Alive", 56: "Was she worth it?", 57: "Heinz Varieties", 58: "Make them Wait", 59: "The Brighton Line", 60: "Five Dozen",
@@ -212,7 +212,7 @@
             calledNumbersList: [],
             ticketFlatList: Array(27).fill(0), 
             activeMarks: [],
-            gameStage: '1 LINE', // Progression track values: '1 LINE' -> '2 LINES' -> 'FULL HOUSE'
+            gameStage: '1 LINE', 
             autoDaubEnabled: false
         };
 
@@ -246,8 +246,11 @@
             if (pb) pb.innerText = localEngineState.gameStage;
         }
 
-        // --- AUTHORITATIVE HOST LAYER ---
+        // --- HOST CORES ---
         function start90BallHost() {
+            document.getElementById('hostStatus').innerText = "Status: Provisioning signaling path...";
+            document.getElementById('hostBtn').disabled = true;
+
             const uniqueRoomKey = Math.floor(10000 + Math.random() * 90000).toString();
             p2pInstance = new Peer(`ROOM-${uniqueRoomKey}`);
 
@@ -274,6 +277,12 @@
                     if (payload.actionType === 'TRANSMIT_BINGO_CLAIM') evaluateIncomingBingoClaim(payload);
                 });
             });
+
+            p2pInstance.on('error', (err) => {
+                alert("Signaling pipeline fault. Reset system parameters.");
+                document.getElementById('hostBtn').disabled = false;
+                document.getElementById('hostStatus').innerText = "Status: Error";
+            });
         }
 
         function build90BallTrackingGrid() {
@@ -298,26 +307,22 @@
 
             localEngineState.calledNumbersList.push(randomSelection);
             
-            // UI Render Updates
             document.getElementById('ballDisplay').innerText = randomSelection;
             document.getElementById('lingoDisplay').innerText = `"${bingoLingoMatrix[randomSelection]}"`;
             document.getElementById(`host-track-node-${randomSelection}`).classList.add('called');
             document.getElementById('drawnCount').innerText = localEngineState.calledNumbersList.length;
 
-            // Shift Prior history ribbon nodes 
             const hist = [...localEngineState.calledNumbersList].reverse();
             document.getElementById('hist-1').innerText = hist[1] || '--';
             document.getElementById('hist-2').innerText = hist[2] || '--';
             document.getElementById('hist-3').innerText = hist[3] || '--';
 
-            // Speak generated digit vector natively via synthesize subsystem
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 let callScript = `${getBingoColumnLetter(randomSelection)} ${randomSelection}. ${bingoLingoMatrix[randomSelection]}.`;
                 window.speechSynthesis.speak(new SpeechSynthesisUtterance(callScript));
             }
 
-            // Sync Broadcast
             streamingChannels.forEach(channel => {
                 if (channel.open) {
                     channel.send({ 
@@ -353,13 +358,26 @@
             });
         }
 
-        // --- PLAYER DATA STRUCTURE & LOCAL SYNC LAYER ---
+        // --- STABLE PLAYER NODE HANDSHAKE SECTOR ---
         function connectTo90BallHost() {
-            const nameInput = document.getElementById('playerNameInput').value.trim();
+            let nameInput = document.getElementById('playerNameInput').value.trim();
             const targetedCodeInput = document.getElementById('joinGameCode').value.trim();
-            if (!nameInput || targetedCodeInput.length !== 5) return alert("All configuration identity fields required.");
+            
+            // Fault Intervention Layer: Fallback name allocation
+            if (!nameInput) {
+                nameInput = "Guest_" + Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('playerNameInput').value = nameInput;
+            }
+            
+            if (targetedCodeInput.length !== 5 || isNaN(targetedCodeInput)) {
+                alert("Room codes must consist of exactly 5 numeric keys.");
+                return;
+            }
 
             localEngineState.playerName = nameInput;
+            document.getElementById('playerStatus').innerText = "Status: Resolving signal path...";
+            document.getElementById('joinBtn').disabled = true;
+
             p2pInstance = new Peer();
 
             p2pInstance.on('open', () => {
@@ -374,11 +392,18 @@
                     backupStateToLocalStorage();
                     draw3x9PlayerTicketGrid();
 
-                    document.getElementById('setupScreen').classList.remove('active');
-                    document.getElementById('playerScreen').classList.add('active');
+                    document.getElementById('setupScreen').className = 'screen';
+                    document.getElementById('playerScreen').className = 'screen active';
                 });
 
                 attachPlayerTrafficListeners();
+            });
+
+            p2pInstance.on('error', (err) => {
+                console.error("PeerJS Client Crash Prevented:", err);
+                alert("Connection refused. Verify room code is active on Host dashboard.");
+                document.getElementById('joinBtn').disabled = false;
+                document.getElementById('playerStatus').innerText = "Status: Failed Node Sync";
             });
         }
 
@@ -398,8 +423,8 @@
                     document.getElementById('playerIdentityDisplay').innerText = localEngineState.playerName;
                     
                     draw3x9PlayerTicketGrid();
-                    document.getElementById('setupScreen').classList.remove('active');
-                    document.getElementById('playerScreen').classList.add('active');
+                    document.getElementById('setupScreen').className = 'screen';
+                    document.getElementById('playerScreen').className = 'screen active';
                 });
                 attachPlayerTrafficListeners();
             });
@@ -497,7 +522,6 @@
             backupStateToLocalStorage();
         }
 
-        // --- AUTOMATED DAUB SCAN ENGINE LAYER ---
         function handleAutoDaubStateSwitch() {
             localEngineState.autoDaubEnabled = document.getElementById('autoDaubToggle').checked;
             if (localEngineState.autoDaubEnabled) executeAutoDaubScan();
@@ -515,8 +539,8 @@
             backupStateToLocalStorage();
         }
 
-        // --- PROGRESSIVE MULTI-STAGE VERIFICATION LAYER ---
         function transmitBingoClaim() {
+            if (localEngineState.activeMarks.length === 0) return alert("No markings selected.");
             let rowMarksCount = [0, 0, 0];
             localEngineState.activeMarks.forEach(idx => {
                 let r = Math.floor(idx / 9);
@@ -535,7 +559,6 @@
         }
 
         function evaluateIncomingBingoClaim(payload) {
-            // AUTHORITATIVE VERIFICATION SWEEP
             let cleanVerify = true;
             payload.activeMarksSnapshot.forEach(idx => {
                 let val = payload.flatListSnapshot[idx];
@@ -556,7 +579,6 @@
                 const winDetails = `"${payload.senderProfileName}" cleared pattern [${localEngineState.gameStage}]!`;
                 launchWinnerBanner(winDetails);
 
-                // Advance system ruleset internally 
                 let nextStage = localEngineState.gameStage;
                 if (localEngineState.gameStage === '1 LINE') nextStage = '2 LINES';
                 else if (localEngineState.gameStage === '2 LINES') nextStage = 'FULL HOUSE';
@@ -566,22 +588,15 @@
 
                 streamingChannels.forEach(channel => {
                     if (channel.open) {
-                        channel.send({ 
-                            actionType: 'BROADCAST_WINNER_STATE', 
-                            winnerNameDetails: winDetails 
-                        });
-                        channel.send({ 
-                            actionType: 'STAGE_ADVANCED', 
-                            nextStage: nextStage 
-                        });
+                        channel.send({ actionType: 'BROADCAST_WINNER_STATE', winnerNameDetails: winDetails });
+                        channel.send({ actionType: 'STAGE_ADVANCED', nextStage: nextStage });
                     }
                 });
             } else {
-                alert(`Claim from [${payload.senderProfileName}] evaluated: Insufficient matching row lanes for stage [${localEngineState.gameStage}].`);
+                alert(`Claim from [${payload.senderProfileName}] evaluated: Insufficient row weights for stage [${localEngineState.gameStage}].`);
             }
         }
 
-        // --- MANUAL FIELD AUDIT CONTROLLER LAYER ---
         function executeManualAudit() {
             const raw = document.getElementById('auditInput').value.trim();
             const resultsBox = document.getElementById('auditResultsBox');
