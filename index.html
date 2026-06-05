@@ -38,79 +38,43 @@
             align-items: flex-start;
         }
 
-        .caller-side {
+        /* LEFT SIDE: Control Dashboard & Card Checker */
+        .left-controls-side {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 20px;
+            width: 350px;
         }
 
-        .checker-side {
+        .caller-card {
             background: #252538;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            width: 340px;
+            text-align: center;
         }
 
-        .controls {
-            margin-bottom: 30px;
+        .checker-card {
+            background: #252538;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        button {
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            margin: 0 10px;
+        /* RIGHT SIDE: Master Grid Array */
+        .right-grid-side {
+            background: #2a2a40;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .btn-draw {
-            background-color: #4e9af1;
-            color: #fff;
-        }
-
-        .btn-draw:hover {
-            background-color: #357ae8;
-        }
-
-        .btn-reset {
-            background-color: #e05d5d;
-            color: #fff;
-        }
-
-        .btn-reset:hover {
-            background-color: #c94444;
-        }
-
-        .btn-check {
-            background-color: #00ffcc;
-            color: #1e1e2f;
-            width: 100%;
-            margin: 10px 0 0 0;
-            font-weight: bold;
-        }
-
-        .btn-check:hover {
-            background-color: #00ccaa;
-        }
-
-        /* 90-Ball Master Board Grid Styling (10 columns, 9 rows) */
+        /* 90-Ball Master Board Layout (10 columns, 9 rows) */
         .master-board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
             gap: 8px;
             max-width: 800px;
-            background: #2a2a40;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         .cell {
@@ -143,6 +107,56 @@
             color: #00ffcc;
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
             height: 90px;
+            line-height: 90px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-draw {
+            background-color: #4e9af1;
+            color: #fff;
+        }
+
+        .btn-draw:hover {
+            background-color: #357ae8;
+        }
+
+        .btn-reset {
+            background-color: #e05d5d;
+            color: #fff;
+        }
+
+        .btn-reset:hover {
+            background-color: #c94444;
+        }
+
+        .btn-check {
+            background-color: #00ffcc;
+            color: #1e1e2f;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-check:hover {
+            background-color: #00ccaa;
         }
 
         h2 {
@@ -162,6 +176,7 @@
             font-size: 0.85rem;
             color: #aaa;
             margin-bottom: 5px;
+            text-align: left;
         }
 
         .checker-row input {
@@ -195,10 +210,14 @@
             color: white;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1200px) {
             .main-layout {
                 flex-direction: column;
                 align-items: center;
+            }
+            .left-controls-side {
+                width: 100%;
+                max-width: 500px;
             }
         }
     </style>
@@ -206,41 +225,49 @@
 <body>
 
     <h1>UK Bingo Caller Dashboard (90 Balls)</h1>
-    <div class="instructions">Open <strong>display.html</strong> in another window to show your audience.</div>
+    <div class="instructions">Keep this browser dashboard active. Open <strong>display.html</strong> in another display tab to host.</div>
 
     <div class="main-layout">
         
-        <div class="caller-side">
-            <div class="current-display" id="currentDisplay">--</div>
-
-            <div class="controls">
-                <button class="btn-draw" id="drawBtn">Draw Next Ball</button>
-                <button class="btn-reset" id="resetBtn">Reset Game</button>
+        <!-- LEFT PANEL: Number Call, Reset Action, and Live Verification Engine -->
+        <div class="left-controls-side">
+            
+            <!-- Caller Display Console -->
+            <div class="caller-card">
+                <div class="current-display" id="currentDisplay">--</div>
+                <div class="action-buttons">
+                    <button class="btn-draw" id="drawBtn">Draw Next Ball</button>
+                    <button class="btn-reset" id="resetBtn">Reset Game</button>
+                </div>
             </div>
 
-            <div class="master-board" id="masterBoard"></div>
+            <!-- Verification System Box -->
+            <div class="checker-card">
+                <h2>UK Ticket Checker</h2>
+                <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px; margin-bottom: 15px;">Verify the player's lines here to lock in claims.</p>
+                
+                <div class="checker-row">
+                    <label>Row 1 Numbers (Comma separated)</label>
+                    <input type="text" id="row1" placeholder="e.g. 4, 11, 45, 72, 81">
+                </div>
+                <div class="checker-row">
+                    <label>Row 2 Numbers (Comma separated)</label>
+                    <input type="text" id="row2" placeholder="e.g. 19, 23, 35, 52, 60">
+                </div>
+                <div class="checker-row">
+                    <label>Row 3 Numbers (Comma separated)</label>
+                    <input type="text" id="row3" placeholder="e.g. 8, 30, 41, 68, 90">
+                </div>
+
+                <button class="btn-check" id="checkBtn">Verify Ticket Status</button>
+                <div id="resultBox" class="result-box"></div>
+            </div>
+
         </div>
 
-        <div class="checker-side">
-            <h2>UK Ticket Checker</h2>
-            <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px;">Enter up to 5 numbers per row from the player's ticket line.</p>
-            
-            <div class="checker-row">
-                <label>Row 1 Numbers (Comma separated)</label>
-                <input type="text" id="row1" placeholder="e.g. 4, 11, 45, 72, 81">
-            </div>
-            <div class="checker-row">
-                <label>Row 2 Numbers (Comma separated)</label>
-                <input type="text" id="row2" placeholder="e.g. 19, 23, 35, 52, 60">
-            </div>
-            <div class="checker-row">
-                <label>Row 3 Numbers (Comma separated)</label>
-                <input type="text" id="row3" placeholder="e.g. 8, 30, 41, 68, 90">
-            </div>
-
-            <button class="btn-check" id="checkBtn">Verify Ticket Status</button>
-
-            <div id="resultBox" class="result-box"></div>
+        <!-- RIGHT PANEL: 90-Ball Matrix Array View Grid -->
+        <div class="right-grid-side">
+            <div class="master-board" id="masterBoard"></div>
         </div>
 
     </div>
@@ -332,7 +359,6 @@
             }
         }
 
-        // Parse rows, handling duplicates up to 90 safely
         function parseRowInput(inputId) {
             const val = document.getElementById(inputId).value;
             if (!val.trim()) return [];
@@ -341,7 +367,6 @@
                                  .map(num => parseInt(num.trim(), 10))
                                  .filter(num => !isNaN(num) && num > 0 && num <= TOTAL_BALLS);
             
-            // Clean up duplicates
             return [...new Set(rawNumbers)];
         }
 
