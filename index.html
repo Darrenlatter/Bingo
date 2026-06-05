@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Caller Dashboard</title>
+    <title>Bingo Caller Dashboard & Checker</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,6 +25,31 @@
             color: #aaa;
             font-size: 0.95rem;
             margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .caller-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .checker-side {
+            background: #252538;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 320px;
         }
 
         .controls {
@@ -64,12 +89,23 @@
             background-color: #c94444;
         }
 
+        .btn-check {
+            background-color: #00ffcc;
+            color: #1e1e2f;
+            width: 100%;
+            margin: 10px 0 0 0;
+        }
+
+        .btn-check:hover {
+            background-color: #00ccaa;
+        }
+
         /* Master Board Grid Styling */
         .master-board {
             display: grid;
             grid-template-columns: repeat(15, 1fr);
             gap: 8px;
-            max-width: 900px;
+            max-width: 750px;
             background: #2a2a40;
             padding: 20px;
             border-radius: 10px;
@@ -77,21 +113,20 @@
         }
 
         .cell {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #151522;
             border: 1px solid #3d3d5c;
             border-radius: 4px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             color: #555;
             transition: background-color 0.3s, color 0.3s, transform 0.2s;
         }
 
-        /* Visual highlighting for called numbers */
         .cell.called {
             background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
             color: #fff;
@@ -108,21 +143,111 @@
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
             height: 80px;
         }
+
+        /* Checker styling */
+        h2 {
+            margin-top: 0;
+            color: #00ffcc;
+            font-size: 1.4rem;
+            border-bottom: 1px solid #3d3d5c;
+            padding-bottom: 10px;
+        }
+
+        .checker-row {
+            margin-bottom: 15px;
+        }
+
+        .checker-row label {
+            display: block;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .checker-row input {
+            width: 100%;
+            padding: 10px;
+            background: #151522;
+            border: 1px solid #3d3d5c;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .status-win {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-fail {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .master-board {
+                grid-template-columns: repeat(10, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
 
     <h1>Bingo Caller Dashboard</h1>
-    <div class="instructions">Keep this window open. Open <strong>display.html</strong> in a separate tab or screen to show your audience.</div>
+    <div class="instructions">Keep this window open to run the game. Open <strong>display.html</strong> in another window to show your audience.</div>
 
-    <div class="current-display" id="currentDisplay">--</div>
+    <div class="main-layout">
+        
+        <!-- LEFT: Caller Board -->
+        <div class="caller-side">
+            <div class="current-display" id="currentDisplay">--</div>
 
-    <div class="controls">
-        <button class="btn-draw" id="drawBtn">Draw Next Ball</button>
-        <button class="btn-reset" id="resetBtn">Reset Game</button>
+            <div class="controls">
+                <button class="btn-draw" id="drawBtn">Draw Next Ball</button>
+                <button class="btn-reset" id="resetBtn">Reset Game</button>
+            </div>
+
+            <div class="master-board" id="masterBoard"></div>
+        </div>
+
+        <!-- RIGHT: Live Ticket Checker -->
+        <div class="checker-side">
+            <h2>Ticket Checker</h2>
+            <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px;">Input the claimant's ticket grid to verify wins.</p>
+            
+            <div class="checker-row">
+                <label>Row 1 Numbers (Comma separated)</label>
+                <input type="text" id="row1" placeholder="e.g. 5, 12, 24, 45, 61">
+            </div>
+            <div class="checker-row">
+                <label>Row 2 Numbers (Comma separated)</label>
+                <input type="text" id="row2" placeholder="e.g. 2, 19, 33, 52, 70">
+            </div>
+            <div class="checker-row">
+                <label>Row 3 Numbers (Comma separated)</label>
+                <input type="text" id="row3" placeholder="e.g. 9, 21, 40, 58, 75">
+            </div>
+
+            <button class="btn-check" id="checkBtn">Verify Ticket Status</button>
+
+            <div id="resultBox" class="result-box"></div>
+        </div>
+
     </div>
-
-    <div class="master-board" id="masterBoard"></div>
 
     <script>
         const TOTAL_BALLS = 75;
@@ -132,8 +257,10 @@
         const masterBoard = document.getElementById('masterBoard');
         const drawBtn = document.getElementById('drawBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const resultBox = document.getElementById('resultBox');
 
-        // Initialize the 1-75 master board UI elements
+        // Setup the 1-75 visual layout
         function initBoard() {
             masterBoard.innerHTML = '';
             for (let i = 1; i <= TOTAL_BALLS; i++) {
@@ -145,7 +272,7 @@
             }
         }
 
-        // Draw a random number that hasn't been drawn yet
+        // Draw an uncalled ball
         function drawBall() {
             if (calledBalls.length >= TOTAL_BALLS) {
                 alert('All numbers have been drawn!');
@@ -157,40 +284,38 @@
                 randomNumber = Math.floor(Math.random() * TOTAL_BALLS) + 1;
             } while (calledBalls.includes(randomNumber));
 
-            // Track the ball
             calledBalls.push(randomNumber);
-            
-            // Sync to localStorage for display.html to read immediately
             localStorage.setItem('bingoCalledBalls', JSON.stringify(calledBalls));
 
-            // Update local UI
             updateUI(randomNumber);
         }
 
-        // Update UI components when a number is drawn
         function updateUI(latestNumber) {
             currentDisplay.textContent = latestNumber;
-            
             const cell = document.getElementById(`cell-${latestNumber}`);
             if (cell) {
                 cell.classList.add('called');
             }
         }
 
-        // Reset game state entirely
+        // Reset game states
         function resetGame() {
             if (confirm('Are you sure you want to reset the current game?')) {
                 calledBalls = [];
                 localStorage.setItem('bingoCalledBalls', JSON.stringify(calledBalls));
                 currentDisplay.textContent = '--';
                 
-                // Remove 'called' classes from grid cells
                 const cells = document.querySelectorAll('.cell');
                 cells.forEach(cell => cell.classList.remove('called'));
+                
+                resultBox.style.display = 'none';
+                document.getElementById('row1').value = '';
+                document.getElementById('row2').value = '';
+                document.getElementById('row3').value = '';
             }
         }
 
-        // Restore game if page is reloaded halfway through
+        // LocalStorage fallback persistence
         function loadSavedState() {
             const saved = localStorage.getItem('bingoCalledBalls');
             if (saved) {
@@ -199,18 +324,76 @@
                     const cell = document.getElementById(`cell-${num}`);
                     if (cell) cell.classList.add('called');
                 });
-                
                 if (calledBalls.length > 0) {
                     currentDisplay.textContent = calledBalls[calledBalls.length - 1];
                 }
             }
         }
 
-        // Event Listeners
+        // --- Ticket Verification Logic ---
+        function parseRowInput(inputId) {
+            const val = document.getElementById(inputId).value;
+            if (!val.trim()) return [];
+            // Split by comma, drop empty/non-numeric artifacts, convert to standard integers
+            return val.split(',')
+                      .map(num => parseInt(num.trim(), 10))
+                      .filter(num => !isNaN(num) && num > 0);
+        }
+
+        function verifyTicket() {
+            const r1 = parseRowInput('row1');
+            const r2 = parseRowInput('row2');
+            const r3 = parseRowInput('row3');
+
+            if (r1.length === 0 && r2.length === 0 && r3.length === 0) {
+                showResult('Please enter numbers to check.', false);
+                return;
+            }
+
+            // Verify how many numbers in each separate row have actually been called
+            const r1Matches = r1.filter(num => calledBalls.includes(num)).length;
+            const r2Matches = r2.filter(num => calledBalls.includes(num)).length;
+            const r3Matches = r3.filter(num => calledBalls.includes(num)).length;
+
+            // Determine if a specific row achieves a perfect clear
+            const r1Cleared = r1.length > 0 && r1Matches === r1.length;
+            const r2Cleared = r2.length > 0 && r2Matches === r2.length;
+            const r3Cleared = r3.length > 0 && r3Matches === r3.length;
+
+            let completedLinesCount = 0;
+            if (r1Cleared) completedLinesCount++;
+            if (r2Cleared) completedLinesCount++;
+            if (r3Cleared) completedLinesCount++;
+
+            // Evaluate standard Bingo win milestones
+            if (completedLinesCount === 3) {
+                showResult('🎉 BINGO WINNER! (Full House Cleared)', true);
+            } else if (completedLinesCount === 2) {
+                showResult('🥈 TWO LINES CLEARED!', true);
+            } else if (completedLinesCount === 1) {
+                showResult('🥇 ONE LINE CLEARED!', true);
+            } else {
+                // Generate detailed match helper feedback if they don't have a clean line yet
+                let feedback = '❌ No Winning Lines.\n';
+                if (r1.length > 0) feedback += `Row 1: ${r1Matches}/${r1.length} | `;
+                if (r2.length > 0) feedback += `Row 2: ${r2Matches}/${r2.length} | `;
+                if (r3.length > 0) feedback += `Row 3: ${r3Matches}/${r3.length}`;
+                showResult(feedback, false);
+            }
+        }
+
+        function showResult(message, isWin) {
+            resultBox.innerText = message;
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box ' + (isWin ? 'status-win' : 'status-fail');
+        }
+
+        // Attach listeners
         drawBtn.addEventListener('click', drawBall);
         resetBtn.addEventListener('click', resetGame);
+        checkBtn.addEventListener('click', verifyTicket);
 
-        // Run on startup
+        // Run setup
         initBoard();
         loadSavedState();
     </script>
