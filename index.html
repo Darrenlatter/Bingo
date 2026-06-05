@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo Caller Dashboard & Checker</title>
+    <title>UK 90-Ball Bingo Caller Dashboard</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,7 +32,7 @@
             display: flex;
             flex-direction: row;
             gap: 30px;
-            max-width: 1200px;
+            max-width: 1300px;
             width: 100%;
             justify-content: center;
             align-items: flex-start;
@@ -49,7 +49,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            width: 320px;
+            width: 340px;
         }
 
         .controls {
@@ -94,18 +94,19 @@
             color: #1e1e2f;
             width: 100%;
             margin: 10px 0 0 0;
+            font-weight: bold;
         }
 
         .btn-check:hover {
             background-color: #00ccaa;
         }
 
-        /* Master Board Grid Styling */
+        /* 90-Ball Master Board Grid Styling (10 columns, 9 rows) */
         .master-board {
             display: grid;
-            grid-template-columns: repeat(15, 1fr);
+            grid-template-columns: repeat(10, 1fr);
             gap: 8px;
-            max-width: 750px;
+            max-width: 800px;
             background: #2a2a40;
             padding: 20px;
             border-radius: 10px;
@@ -113,17 +114,17 @@
         }
 
         .cell {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #151522;
             border: 1px solid #3d3d5c;
             border-radius: 4px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
-            color: #555;
+            color: #44445c;
             transition: background-color 0.3s, color 0.3s, transform 0.2s;
         }
 
@@ -136,15 +137,14 @@
         }
 
         .current-display {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: bold;
             margin-bottom: 20px;
             color: #00ffcc;
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
-            height: 80px;
+            height: 90px;
         }
 
-        /* Checker styling */
         h2 {
             margin-top: 0;
             color: #00ffcc;
@@ -182,6 +182,7 @@
             font-weight: bold;
             text-align: center;
             display: none;
+            white-space: pre-line;
         }
 
         .status-win {
@@ -199,16 +200,13 @@
                 flex-direction: column;
                 align-items: center;
             }
-            .master-board {
-                grid-template-columns: repeat(10, 1fr);
-            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Bingo Caller Dashboard</h1>
-    <div class="instructions">Keep this window open to run the game. Open <strong>display.html</strong> in another window to show your audience.</div>
+    <h1>UK Bingo Caller Dashboard (90 Balls)</h1>
+    <div class="instructions">Open <strong>display.html</strong> in another window to show your audience.</div>
 
     <div class="main-layout">
         
@@ -224,20 +222,20 @@
         </div>
 
         <div class="checker-side">
-            <h2>Ticket Checker</h2>
-            <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px;">Input the claimant's ticket grid to verify wins.</p>
+            <h2>UK Ticket Checker</h2>
+            <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px;">Enter up to 5 numbers per row from the player's ticket line.</p>
             
             <div class="checker-row">
                 <label>Row 1 Numbers (Comma separated)</label>
-                <input type="text" id="row1" placeholder="e.g. 5, 12, 24, 45, 61">
+                <input type="text" id="row1" placeholder="e.g. 4, 11, 45, 72, 81">
             </div>
             <div class="checker-row">
                 <label>Row 2 Numbers (Comma separated)</label>
-                <input type="text" id="row2" placeholder="e.g. 2, 19, 33, 52, 70">
+                <input type="text" id="row2" placeholder="e.g. 19, 23, 35, 52, 60">
             </div>
             <div class="checker-row">
                 <label>Row 3 Numbers (Comma separated)</label>
-                <input type="text" id="row3" placeholder="e.g. 9, 21, 40, 58, 75">
+                <input type="text" id="row3" placeholder="e.g. 8, 30, 41, 68, 90">
             </div>
 
             <button class="btn-check" id="checkBtn">Verify Ticket Status</button>
@@ -248,7 +246,7 @@
     </div>
 
     <script>
-        const TOTAL_BALLS = 75;
+        const TOTAL_BALLS = 90;
         let calledBalls = [];
         let gameStatus = { oneLineWon: false, twoLinesWon: false, bingoWon: false };
         
@@ -272,7 +270,7 @@
 
         function drawBall() {
             if (calledBalls.length >= TOTAL_BALLS) {
-                alert('All numbers have been drawn!');
+                alert('All 90 numbers have been drawn!');
                 return;
             }
 
@@ -334,7 +332,7 @@
             }
         }
 
-        // Parse row entries and discard duplicates using ES6 Sets
+        // Parse rows, handling duplicates up to 90 safely
         function parseRowInput(inputId) {
             const val = document.getElementById(inputId).value;
             if (!val.trim()) return [];
@@ -343,7 +341,7 @@
                                  .map(num => parseInt(num.trim(), 10))
                                  .filter(num => !isNaN(num) && num > 0 && num <= TOTAL_BALLS);
             
-            // Using Set automatically removes duplicates
+            // Clean up duplicates
             return [...new Set(rawNumbers)];
         }
 
@@ -373,7 +371,7 @@
             if (completedLinesCount === 3) {
                 gameStatus.bingoWon = true;
                 localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
-                showResult('🎉 BINGO WINNER! (Full House Cleared)', true);
+                showResult('🎉 BINGO / FULL HOUSE WINNER!', true);
             } else if (completedLinesCount === 2) {
                 gameStatus.twoLinesWon = true;
                 localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
@@ -383,9 +381,9 @@
                 localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
                 showResult('🥇 ONE LINE CLEARED!', true);
             } else {
-                let feedback = '❌ No New Winning Lines.\n';
-                if (r1.length > 0) feedback += `Row 1: ${r1Matches}/${r1.length} | `;
-                if (r2.length > 0) feedback += `Row 2: ${r2Matches}/${r2.length} | `;
+                let feedback = '❌ No Winning Lines Matched Yet.\n';
+                if (r1.length > 0) feedback += `Row 1: ${r1Matches}/${r1.length}\n`;
+                if (r2.length > 0) feedback += `Row 2: ${r2Matches}/${r2.length}\n`;
                 if (r3.length > 0) feedback += `Row 3: ${r3Matches}/${r3.length}`;
                 showResult(feedback, false);
             }
