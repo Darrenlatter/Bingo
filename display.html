@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo - Live Display Board</title>
+    <title>Bingo - Live Audience Display</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #1a1a2e;
             color: #fff;
             margin: 0;
@@ -15,28 +15,75 @@
         }
 
         h1 {
-            color: #e94560;
+            color: #4e9af1;
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        .subtitle {
-            color: #888;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
+        .showcase-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            justify-content: center;
+            align-items: flex-start;
         }
 
-        /* Styling for the most recently pulled ball */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Live Achievements Panel */
+        .status-panel {
+            background-color: #161625;
+            padding: 20px;
+            border-radius: 10px;
+            width: 280px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: left;
+        }
+
+        .status-panel h3 {
+            margin-top: 0;
+            color: #00ffcc;
+            border-bottom: 1px solid #3d3d5c;
+            padding-bottom: 8px;
+        }
+
+        .badge {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            background-color: #222235;
+            color: #555570;
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+
+        .badge.active {
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .badge.one-line.active { background-color: #ff9f43; }
+        .badge.two-lines.active { background-color: #0abde3; }
+        .badge.bingo.active { background-color: #10ac84; animation: flash 1s infinite alternate; }
+
+        /* Latest Drawn Ball */
         .latest-container {
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
 
         .latest-ball {
             display: inline-block;
-            width: 150px;
-            height: 150px;
-            line-height: 150px;
-            background: radial-gradient(circle at 30% 30%, #e94560, #950740);
+            width: 140px;
+            height: 140px;
+            line-height: 140px;
+            background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
             color: white;
             font-size: 4.5rem;
             font-weight: bold;
@@ -45,107 +92,147 @@
             animation: popIn 0.3s ease-out;
         }
 
-        /* Grid layout for previous numbers */
+        /* Shared Master Grid Layout */
         .board-container {
-            max-width: 900px;
-            margin: 0 auto;
             background-color: #161625;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .balls-grid {
+        .master-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 8px;
+            max-width: 750px;
+        }
+
+        .cell {
+            width: 42px;
+            height: 42px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+            align-items: center;
             justify-content: center;
-            min-height: 150px;
-        }
-
-        .history-ball {
-            width: 55px;
-            height: 55px;
-            line-height: 55px;
-            background: linear-gradient(145deg, #0f3460, #162447);
-            color: #fff;
-            font-size: 1.5rem;
+            background-color: #0f0f1a;
+            border: 1px solid #2d2d44;
+            border-radius: 4px;
+            font-size: 1.05rem;
             font-weight: bold;
-            border-radius: 50%;
-            border: 2px solid #0f3460;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            color: #333344;
+            transition: all 0.3s ease;
         }
 
-        .no-balls {
-            color: #555;
-            font-style: italic;
-            font-size: 1.5rem;
-            margin-top: 50px;
+        .cell.called {
+            background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
+            color: #fff;
+            border-color: #4e9af1;
+            box-shadow: 0 0 8px rgba(78, 154, 241, 0.4);
+            transform: scale(1.02);
         }
 
         @keyframes popIn {
             0% { transform: scale(0); }
-            90% { transform: scale(1.1); }
+            90% { transform: scale(1.08); }
             100% { transform: scale(1); }
+        }
+
+        @keyframes flash {
+            from { box-shadow: 0 0 5px #10ac84; }
+            to { box-shadow: 0 0 20px #10ac84; }
+        }
+
+        @media (max-width: 950px) {
+            .showcase-layout { flex-direction: column; align-items: center; }
+            .master-board { grid-template-columns: repeat(10, 1fr); }
         }
     </style>
 </head>
 <body>
 
-    <h1>BINGO LIVE DISPLAY</h1>
-    <div class="subtitle">Waiting for host to pull balls...</div>
+    <h1>BINGO MAIN BOARD</h1>
+    <p style="color: #888; margin-top:0; margin-bottom: 30px;">Live Game Tracking</p>
 
-    <div class="latest-container">
-        <div id="latestBallSlot"></div>
-    </div>
+    <div class="showcase-layout">
+        
+        <div class="left-panel">
+            <div class="latest-container">
+                <div id="latestBallSlot"></div>
+            </div>
 
-    <div class="board-container">
-        <h3>Balls Pulled So Far</h3>
-        <div id="ballsGrid" class="balls-grid">
-            <div class="no-balls">No balls drawn yet.</div>
+            <div class="status-panel">
+                <h3>Prizes Status</h3>
+                <div id="badgeLine1" class="badge one-line">🥇 1 LINE</div>
+                <div id="badgeLine2" class="badge two-lines">🥈 2 LINES</div>
+                <div id="badgeBingo" class="badge bingo">🏆 FULL HOUSE / BINGO</div>
+            </div>
         </div>
+
+        <div class="board-container">
+            <div class="master-board" id="displayBoardGrid"></div>
+        </div>
+
     </div>
 
     <script>
+        const TOTAL_BALLS = 75;
+        const displayBoardGrid = document.getElementById('displayBoardGrid');
         const latestBallSlot = document.getElementById('latestBallSlot');
-        const ballsGrid = document.getElementById('ballsGrid');
+        
+        const badgeLine1 = document.getElementById('badgeLine1');
+        const badgeLine2 = document.getElementById('badgeLine2');
+        const badgeBingo = document.getElementById('badgeBingo');
 
-        function updateDisplayBoard() {
-            // Retrieve data from localStorage saved by index.html
-            const data = localStorage.getItem('bingoCalledBalls');
-            const calledBalls = data ? JSON.parse(data) : [];
+        function buildGridUI() {
+            displayBoardGrid.innerHTML = '';
+            for (let i = 1; i <= TOTAL_BALLS; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `view-cell-${i}`;
+                cell.textContent = i;
+                displayBoardGrid.appendChild(cell);
+            }
+        }
 
-            // 1. Update Latest Ball
+        function syncDisplayBoard() {
+            // 1. Sync Drawn Balls Grid
+            const ballData = localStorage.getItem('bingoCalledBalls');
+            const calledBalls = ballData ? JSON.parse(ballData) : [];
+
+            // Reset classes
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
+            
+            calledBalls.forEach(num => {
+                const cell = document.getElementById(`view-cell-${num}`);
+                if (cell) cell.classList.add('called');
+            });
+
+            // 2. Render Focal Display Ball
             if (calledBalls.length > 0) {
                 const lastBall = calledBalls[calledBalls.length - 1];
                 latestBallSlot.innerHTML = `<div class="latest-ball">${lastBall}</div>`;
             } else {
-                latestBallSlot.innerHTML = '';
+                latestBallSlot.innerHTML = '<div style="height:140px; display:flex; align-items:center; color:#444;">Ready</div>';
             }
 
-            // 2. Update Grid History
-            if (calledBalls.length > 0) {
-                ballsGrid.innerHTML = '';
-                calledBalls.forEach(ball => {
-                    const ballDiv = document.createElement('div');
-                    ballDiv.className = 'history-ball';
-                    ballDiv.textContent = ball;
-                    ballsGrid.appendChild(ballDiv);
-                });
-            } else {
-                ballsGrid.innerHTML = '<div class="no-balls">No balls drawn yet.</div>';
-            }
+            // 3. Sync Milestone Badges
+            const statusData = localStorage.getItem('bingoGameStatus');
+            const gameStatus = statusData ? JSON.parse(statusData) : { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+
+            if (gameStatus.oneLineWon) badgeLine1.classList.add('active'); else badgeLine1.classList.remove('active');
+            if (gameStatus.twoLinesWon) badgeLine2.classList.add('active'); else badgeLine2.classList.remove('active');
+            if (gameStatus.bingoWon) badgeBingo.classList.add('active'); else badgeBingo.classList.remove('active');
         }
 
-        // Listen for updates sent from the main window/tab
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'bingoCalledBalls') {
-                updateDisplayBoard();
+        // Listen live for modifications performed in index.html window
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'bingoCalledBalls' || e.key === 'bingoGameStatus') {
+                syncDisplayBoard();
             }
         });
 
-        // Initialize display on load in case a game is already in progress
-        window.addEventListener('DOMContentLoaded', updateDisplayBoard);
+        // Initialize setup variables on load
+        buildGridUI();
+        syncDisplayBoard();
     </script>
 </body>
 </html>
