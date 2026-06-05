@@ -37,7 +37,6 @@
             align-items: center;
         }
 
-        /* Prize Management Sidebar */
         .status-panel {
             background-color: #161625;
             padding: 20px;
@@ -92,7 +91,6 @@
             animation: popIn 0.3s ease-out;
         }
 
-        /* 10-Column Board Grid Container */
         .board-container {
             background-color: #161625;
             padding: 20px;
@@ -173,13 +171,10 @@
     </div>
 
     <script>
-        // Injected project variables matching dashboard channel identifiers
         const SUPABASE_URL = "https://vwcownlgofzzfnveukwe.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3Y293bmxnb2Z6emZudmV1a3dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODM0NjUsImV4cCI6MjA5NjI1OTQ2NX0.uRJHGyXxxEKgxnZyWrb3q-0nmxkkxYIRdV94lE-4Dpw";
 
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const channel = supabase.channel('bingo-global-room');
-
+        let supabase, channel;
         const TOTAL_BALLS = 90;
         const displayBoardGrid = document.getElementById('displayBoardGrid');
         const latestBallSlot = document.getElementById('latestBallSlot');
@@ -219,18 +214,26 @@
             if (gameStatus.bingoWon) badgeBingo.classList.add('active'); else badgeBingo.classList.remove('active');
         }
 
-        channel
-            .on('broadcast', { event: 'sync' }, ({ payload }) => {
-                applySyncedState(payload.calledBalls, payload.gameStatus);
-            })
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    connStatus.textContent = "🟢 Connected • Live Global Link Active";
-                    connStatus.className = "conn-status connected";
-                }
-            });
+        // Execution Delayed Safely Until Browser Document Container is Verified
+        window.addEventListener('DOMContentLoaded', () => {
+            buildGridUI();
 
-        buildGridUI();
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            channel = supabase.channel('bingo-global-room');
+
+            channel
+                .on('broadcast', { event: 'sync' }, ({ payload }) => {
+                    if (payload && payload.calledBalls && payload.gameStatus) {
+                        applySyncedState(payload.calledBalls, payload.payload ? payload.gameStatus : payload.gameStatus);
+                    }
+                })
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        connStatus.textContent = "🟢 Connected • Live Global Link Active";
+                        connStatus.className = "conn-status connected";
+                    }
+                });
+        });
     </script>
 </body>
 </html>
