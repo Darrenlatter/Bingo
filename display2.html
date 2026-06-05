@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo - Theater Display Board</title>
+    <style>
+        :root {
+            --bg-main: #0b0c10;
+            --bg-card: #1f2833;
+            --accent-glow: #66fcf1;
+            --accent-neon: #45f3ff;
+            --text-bright: #ffffff;
+            --text-muted: #c5c6c7;
+            --cell-empty: #12161c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-bright);
+            margin: 0;
+            padding: 24px;
+            overflow: hidden;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Split Screen Dashboard Layout */
+        .theater-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            height: calc(100vh - 100px);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            border-bottom: 2px solid var(--bg-card);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, var(--accent-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Live Achievements Banner in Header */
+        .prizes-ticker {
+            display: flex;
+            gap: 15px;
+        }
+
+        .prize-banner {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            background: #11141a;
+            border: 1px solid #222b35;
+            color: #445060;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .prize-banner.active {
+            color: #000;
+            font-weight: 900;
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: scale(1.05);
+        }
+        .prize-banner.p1.active { background: linear-gradient(135deg, #ff9f43, #ffca28); }
+        .prize-banner.p2.active { background: linear-gradient(135deg, #0abde3, #4ea5ff); }
+        .prize-banner.p3.active { background: linear-gradient(135deg, #10ac84, #1dd1a1); animation: heartbeat 1.5s infinite; }
+
+        /* LEFT PANEL: Focus Arena */
+        .focus-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .hero-ball-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #2f3b4c;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-label {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent-glow);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .giant-ball {
+            width: 190px;
+            height: 190px;
+            line-height: 190px;
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--accent-glow) 40%, #008080 85%, #004d4d 100%);
+            color: #051c1c;
+            font-size: 6.5rem;
+            font-weight: 900;
+            border-radius: 50%;
+            box-shadow: 0 15px 35px rgba(102, 252, 241, 0.3), inset -10px -10px 20px rgba(0,0,0,0.4);
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+            animation: ballPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .waiting-text {
+            color: #4f5e71;
+            font-style: italic;
+            font-size: 1.4rem;
+        }
+
+        /* Recent Ball History Roll */
+        .history-reel-box {
+            background: #11141a;
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid #1f2631;
+        }
+
+        .history-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .reel-slots {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .reel-ball {
+            width: 55px;
+            height: 55px;
+            line-height: 55px;
+            background: radial-gradient(circle at 30% 30%, #3a4750, #222831);
+            color: var(--text-bright);
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 50%;
+            text-align: center;
+            border: 1px solid #475569;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* RIGHT PANEL: Traditional Bingo Grid */
+        .grid-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #2f3b4c;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bingo-row {
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+        }
+        .bingo-row:last-child { margin-bottom: 0; }
+
+        .letter-header {
+            width: 60px;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--accent-neon);
+            text-shadow: 0 0 10px rgba(69,243,255,0.3);
+            text-align: center;
+        }
+
+        .row-cells {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 6px;
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--cell-empty);
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3540;
+            border: 1px solid #1b222b;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .cell.called {
+            background: radial-gradient(circle at 30% 30%, #203a43, #0f2027);
+            color: var(--accent-glow);
+            border-color: var(--accent-glow);
+            box-shadow: inset 0 0 8px rgba(102, 252, 241, 0.3), 0 0 12px rgba(102, 252, 241, 0.2);
+            font-size: 1.4rem;
+        }
+
+        /* Dynamic Animations */
+        @keyframes ballPop {
+            0% { transform: scale(0.4) rotate(-45deg); filter: blur(4px); }
+            70% { transform: scale(1.1) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); box-shadow: 0 0 25px #10ac84; }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 1100px) {
+            .theater-container { grid-template-columns: 1fr; overflow-y: auto; height: auto;}
+            body { height: auto; overflow: auto; }
+            .cell { padding: 10px 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Bingo Dashboard</h1>
+        <!-- Prize Ticker Status Elements -->
+        <div class="prizes-ticker">
+            <div id="p1" class="prize-banner p1">🥇 1 LINE</div>
+            <div id="p2" class="prize-banner p2">🥈 2 LINES</div>
+            <div id="p3" class="prize-banner p3">🏆 FULL HOUSE</div>
+        </div>
+    </header>
+
+    <div class="theater-container">
+        
+        <!-- LEFT PANEL: Hero Display and Recent Tracks -->
+        <div class="focus-panel">
+            <div class="hero-ball-box">
+                <div id="heroLabel" class="hero-label"></div>
+                <div id="giantBallSlot">
+                    <div class="waiting-text">Awaiting Call...</div>
+                </div>
+            </div>
+
+            <div class="history-reel-box">
+                <div class="history-label">Previous Calls</div>
+                <div class="reel-slots" id="historyReel">
+                    <div style="color:#2c3540; font-style:italic; font-size:0.9rem; line-height:55px;">Reel empty</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Categorized B-I-N-G-O Columns -->
+        <div class="grid-panel" id="letterMatrix">
+            <!-- Row generation handled dynamically by script structure below -->
+        </div>
+
+    </div>
+
+    <script>
+        const TOTAL_BALLS = 75;
+        const letterMatrix = document.getElementById('letterMatrix');
+        const giantBallSlot = document.getElementById('giantBallSlot');
+        const heroLabel = document.getElementById('heroLabel');
+        const historyReel = document.getElementById('historyReel');
+
+        const letters = [
+            { char: 'B', min: 1, max: 15 },
+            { char: 'I', min: 16, max: 30 },
+            { char: 'N', min: 31, max: 45 },
+            { char: 'G', min: 46, max: 60 },
+            { char: 'O', min: 61, max: 75 }
+        ];
+
+        // Draw structural B-I-N-G-O component mapping rows
+        function buildMatrixLayout() {
+            letterMatrix.innerHTML = '';
+            letters.forEach(letter => {
+                const row = document.createElement('div');
+                row.className = 'bingo-row';
+
+                const header = document.createElement('div');
+                header.className = 'letter-header';
+                header.textContent = letter.char;
+                row.appendChild(header);
+
+                const cellContainer = document.createElement('div');
+                cellContainer.className = 'row-cells';
+
+                for (let i = letter.min; i <= letter.max; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `grid-cell-${i}`;
+                    cell.textContent = i;
+                    cellContainer.appendChild(cell);
+                }
+
+                row.appendChild(cellContainer);
+                letterMatrix.appendChild(row);
+            });
+        }
+
+        // Helper calculation mapping numbers to their letter headers
+        function getLetterPrefix(number) {
+            const match = letters.find(l => number >= l.min && number <= l.max);
+            return match ? match.char : '';
+        }
+
+        function refreshDashboard() {
+            const ballData = localStorage.getItem('bingoCalledBalls');
+            const calledBalls = ballData ? JSON.parse(ballData) : [];
+
+            // 1. Refresh background grid items
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
+            calledBalls.forEach(num => {
+                const targetCell = document.getElementById(`grid-cell-${num}`);
+                if (targetCell) targetCell.classList.add('called');
+            });
+
+            // 2. Process Hero display items
+            if (calledBalls.length > 0) {
+                const activeBall = calledBalls[calledBalls.length - 1];
+                const prefix = getLetterPrefix(activeBall);
+                
+                heroLabel.textContent = "Now Displaying";
+                giantBallSlot.innerHTML = `<div class="giant-ball">${prefix}${activeBall}</div>`;
+            } else {
+                heroLabel.textContent = "";
+                giantBallSlot.innerHTML = '<div class="waiting-text">Awaiting Call...</div>';
+            }
+
+            // 3. Process History Reel tracking columns (Items index offsets backward from final index)
+            if (calledBalls.length > 1) {
+                historyReel.innerHTML = '';
+                // Pull a sub-slice array representing up to three preceding items
+                const historicalSubslice = calledBalls.slice(0, -1).reverse().slice(0, 3);
+                
+                historicalSubslice.forEach(num => {
+                    const prefix = getLetterPrefix(num);
+                    const historicalBallItem = document.createElement('div');
+                    historicalBallItem.className = 'reel-ball';
+                    historicalBallItem.textContent = `${prefix}${num}`;
+                    historyReel.appendChild(historicalBallItem);
+                });
+            } else {
+                historyReel.innerHTML = '<div style="color:#2c3540; font-style:italic; font-size:0.9rem; line-height:55px;">Reel empty</div>';
+            }
+
+            // 4. Update Prize Banner indicators
+            const statusData = localStorage.getItem('bingoGameStatus');
+            const gameStatus = statusData ? JSON.parse(statusData) : { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+
+            document.getElementById('p1').classList.toggle('active', gameStatus.oneLineWon);
+            document.getElementById('p2').classList.toggle('active', gameStatus.twoLinesWon);
+            document.getElementById('p3').classList.toggle('active', gameStatus.bingoWon);
+        }
+
+        // Global browser instance cross-talk engine mapping items
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'bingoCalledBalls' || e.key === 'bingoGameStatus') {
+                refreshDashboard();
+            }
+        });
+
+        // Bootstrap operational loops
+        buildMatrixLayout();
+        refreshDashboard();
+    </script>
+</body>
+</html>
