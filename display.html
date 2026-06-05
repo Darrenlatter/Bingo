@@ -92,7 +92,7 @@
             animation: popIn 0.3s ease-out;
         }
 
-        /* Shared Master Grid Layout */
+        /* Shared Master Grid Layout (Updated to 10 Columns for 90 Balls) */
         .board-container {
             background-color: #161625;
             padding: 20px;
@@ -102,7 +102,7 @@
 
         .master-board {
             display: grid;
-            grid-template-columns: repeat(15, 1fr);
+            grid-template-columns: repeat(10, 1fr);
             gap: 8px;
             max-width: 750px;
         }
@@ -174,7 +174,7 @@
     </div>
 
     <script>
-        const TOTAL_BALLS = 75;
+        const TOTAL_BALLS = 90; // Updated to 90 Balls
         const displayBoardGrid = document.getElementById('displayBoardGrid');
         const latestBallSlot = document.getElementById('latestBallSlot');
         
