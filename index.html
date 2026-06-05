@@ -32,7 +32,6 @@
             text-align: center;
         }
 
-        /* Fixed Split-Screen Layout Structure */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -43,7 +42,6 @@
             align-items: flex-start;
         }
 
-        /* LEFT SIDE: Active Controllers */
         .left-controls-side {
             display: flex;
             flex-direction: column;
@@ -61,7 +59,6 @@
         }
         .caller-card { text-align: center; }
 
-        /* RIGHT SIDE: 90-Ball Matrix Board Container */
         .right-grid-side {
             background: #2a2a40;
             padding: 24px;
@@ -72,7 +69,6 @@
             box-sizing: border-box;
         }
 
-        /* 10-Column Board Grid Setup */
         .master-board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -107,4 +103,33 @@
             font-weight: bold;
             margin-bottom: 20px;
             color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0, 2
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            height: 100px;
+            line-height: 100px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            padding: 14px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:active { transform: scale(0.98); }
+        .btn-draw { background-color: #4e9af1; color: #fff; }
+        .btn-draw:hover { background-color: #357ae8; }
+        .btn-reset { background-color: #e05d5d; color: #fff; }
+        .btn-reset:hover { background-color: #c94444; }
+        .btn-check { background-color: #00ffcc; color: #1e1e2f; width: 100%; margin-top: 10px; }
+        .btn-check:hover { background-color: #00ccaa; }
+
+        h2 { margin-top: 0; color: #00ffcc; font-size: 1.4rem
