@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo - Live Display Board</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #e94560;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Styling for the most recently pulled ball */
+        .latest-container {
+            margin-bottom: 40px;
+        }
+
+        .latest-ball {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            line-height: 150px;
+            background: radial-gradient(circle at 30% 30%, #e94560, #950740);
+            color: white;
+            font-size: 4.5rem;
+            font-weight: bold;
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            animation: popIn 0.3s ease-out;
+        }
+
+        /* Grid layout for previous numbers */
+        .board-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #161625;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .balls-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 150px;
+        }
+
+        .history-ball {
+            width: 55px;
+            height: 55px;
+            line-height: 55px;
+            background: linear-gradient(145deg, #0f3460, #162447);
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50%;
+            border: 2px solid #0f3460;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .no-balls {
+            color: #555;
+            font-style: italic;
+            font-size: 1.5rem;
+            margin-top: 50px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            90% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>BINGO LIVE DISPLAY</h1>
+    <div class="subtitle">Waiting for host to pull balls...</div>
+
+    <div class="latest-container">
+        <div id="latestBallSlot"></div>
+    </div>
+
+    <div class="board-container">
+        <h3>Balls Pulled So Far</h3>
+        <div id="ballsGrid" class="balls-grid">
+            <div class="no-balls">No balls drawn yet.</div>
+        </div>
+    </div>
+
+    <script>
+        const latestBallSlot = document.getElementById('latestBallSlot');
+        const ballsGrid = document.getElementById('ballsGrid');
+
+        function updateDisplayBoard() {
+            // Retrieve data from localStorage saved by index.html
+            const data = localStorage.getItem('bingoCalledBalls');
+            const calledBalls = data ? JSON.parse(data) : [];
+
+            // 1. Update Latest Ball
+            if (calledBalls.length > 0) {
+                const lastBall = calledBalls[calledBalls.length - 1];
+                latestBallSlot.innerHTML = `<div class="latest-ball">${lastBall}</div>`;
+            } else {
+                latestBallSlot.innerHTML = '';
+            }
+
+            // 2. Update Grid History
+            if (calledBalls.length > 0) {
+                ballsGrid.innerHTML = '';
+                calledBalls.forEach(ball => {
+                    const ballDiv = document.createElement('div');
+                    ballDiv.className = 'history-ball';
+                    ballDiv.textContent = ball;
+                    ballsGrid.appendChild(ballDiv);
+                });
+            } else {
+                ballsGrid.innerHTML = '<div class="no-balls">No balls drawn yet.</div>';
+            }
+        }
+
+        // Listen for updates sent from the main window/tab
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'bingoCalledBalls') {
+                updateDisplayBoard();
+            }
+        });
+
+        // Initialize display on load in case a game is already in progress
+        window.addEventListener('DOMContentLoaded', updateDisplayBoard);
+    </script>
+</body>
+</html>
