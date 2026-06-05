@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UK 90-Ball Bingo Caller Dashboard (Remote Hub)</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>UK 90-Ball Bingo Caller Dashboard</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,6 +31,7 @@
             text-align: center;
         }
 
+        /* Fixed Master Split-Screen Layout Container */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -42,33 +42,44 @@
             align-items: flex-start;
         }
 
+        /* LEFT COLUMN: Controls & Verification Engine (Fixed Width) */
         .left-controls-side {
             display: flex;
             flex-direction: column;
             gap: 20px;
             width: 340px;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Prevents column from squishing */
         }
 
-        .caller-card, .checker-card {
+        .caller-card {
+            background: #252538;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .checker-card {
             background: #252538;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             box-sizing: border-box;
         }
-        .caller-card { text-align: center; }
 
+        /* RIGHT COLUMN: 90-Ball Master Board Layout Container */
         .right-grid-side {
             background: #2a2a40;
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            flex-grow: 1;
-            max-width: 620px;
+            flex-grow: 1; /* Allows container to comfortably scale fill space */
+            max-width: 620px; /* Perfect containment max boundary for 10 cells */
             box-sizing: border-box;
         }
 
+        /* 10-Column Matrix Grid for 90 Balls */
         .master-board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -77,7 +88,7 @@
         }
 
         .cell {
-            aspect-ratio: 1;
+            aspect-ratio: 1; /* Maintains perfect uniform squares */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -124,12 +135,310 @@
             transition: background 0.2s, transform 0.1s;
         }
 
-        button:active { transform: scale(0.98); }
-        .btn-draw { background-color: #4e9af1; color: #fff; }
-        .btn-draw:hover { background-color: #357ae8; }
-        .btn-reset { background-color: #e05d5d; color: #fff; }
-        .btn-reset:hover { background-color: #c94444; }
-        .btn-check { background-color: #00ffcc; color: #1e1e2f; width: 100%; margin-top: 10px; }
-        .btn-check:hover { background-color: #00ccaa; }
+        button:active {
+            transform: scale(0.98);
+        }
 
-        h2 { margin-top: 0; color: #00ffcc; font-size: 1.4rem
+        .btn-draw {
+            background-color: #4e9af1;
+            color: #fff;
+        }
+
+        .btn-draw:hover {
+            background-color: #357ae8;
+        }
+
+        .btn-reset {
+            background-color: #e05d5d;
+            color: #fff;
+        }
+
+        .btn-reset:hover {
+            background-color: #c94444;
+        }
+
+        .btn-check {
+            background-color: #00ffcc;
+            color: #1e1e2f;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-check:hover {
+            background-color: #00ccaa;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #00ffcc;
+            font-size: 1.4rem;
+            border-bottom: 1px solid #3d3d5c;
+            padding-bottom: 10px;
+        }
+
+        .checker-row {
+            margin-bottom: 15px;
+        }
+
+        .checker-row label {
+            display: block;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        .checker-row input {
+            width: 100%;
+            padding: 12px;
+            background: #151522;
+            border: 1px solid #3d3d5c;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            white-space: pre-line;
+        }
+
+        .status-win {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-fail {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Responsive Breakpoint for smaller windows/tablets */
+        @media (max-width: 1024px) {
+            .main-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .left-controls-side {
+                width: 100%;
+                max-width: 620px;
+            }
+            .right-grid-side {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>UK Bingo Caller Dashboard (90 Balls)</h1>
+    <div class="instructions">Keep this browser dashboard active. Open <strong>display.html</strong> in another display tab to host.</div>
+
+    <div class="main-layout">
+        
+        <!-- LEFT COLUMN -->
+        <div class="left-controls-side">
+            
+            <!-- Caller Display Console Card -->
+            <div class="caller-card">
+                <div class="current-display" id="currentDisplay">--</div>
+                <div class="action-buttons">
+                    <button class="btn-draw" id="drawBtn">Draw Next Ball</button>
+                    <button class="btn-reset" id="resetBtn">Reset Game</button>
+                </div>
+            </div>
+
+            <!-- Verification System Card Box -->
+            <div class="checker-card">
+                <h2>UK Ticket Checker</h2>
+                <p style="font-size: 0.85rem; color: #aaa; margin-top: -5px; margin-bottom: 15px; text-align: left;">Verify the player's lines here to lock in claims.</p>
+                
+                <div class="checker-row">
+                    <label>Row 1 Numbers (Comma separated)</label>
+                    <input type="text" id="row1" placeholder="e.g. 4, 11, 45, 72, 81">
+                </div>
+                <div class="checker-row">
+                    <label>Row 2 Numbers (Comma separated)</label>
+                    <input type="text" id="row2" placeholder="e.g. 19, 23, 35, 52, 60">
+                </div>
+                <div class="checker-row">
+                    <label>Row 3 Numbers (Comma separated)</label>
+                    <input type="text" id="row3" placeholder="e.g. 8, 30, 41, 68, 90">
+                </div>
+
+                <button class="btn-check" id="checkBtn">Verify Ticket Status</button>
+                <div id="resultBox" class="result-box"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right-grid-side">
+            <div class="master-board" id="masterBoard"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const TOTAL_BALLS = 90;
+        let calledBalls = [];
+        let gameStatus = { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+        
+        const currentDisplay = document.getElementById('currentDisplay');
+        const masterBoard = document.getElementById('masterBoard');
+        const drawBtn = document.getElementById('drawBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const resultBox = document.getElementById('resultBox');
+
+        function initBoard() {
+            masterBoard.innerHTML = '';
+            for (let i = 1; i <= TOTAL_BALLS; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                cell.textContent = i;
+                masterBoard.appendChild(cell);
+            }
+        }
+
+        function drawBall() {
+            if (calledBalls.length >= TOTAL_BALLS) {
+                alert('All 90 numbers have been drawn!');
+                return;
+            }
+
+            let randomNumber;
+            do {
+                randomNumber = Math.floor(Math.random() * TOTAL_BALLS) + 1;
+            } while (calledBalls.includes(randomNumber));
+
+            calledBalls.push(randomNumber);
+            localStorage.setItem('bingoCalledBalls', JSON.stringify(calledBalls));
+
+            updateUI(randomNumber);
+        }
+
+        function updateUI(latestNumber) {
+            currentDisplay.textContent = latestNumber;
+            const cell = document.getElementById(`cell-${latestNumber}`);
+            if (cell) {
+                cell.classList.add('called');
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to reset the current game?')) {
+                calledBalls = [];
+                gameStatus = { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+                
+                localStorage.setItem('bingoCalledBalls', JSON.stringify(calledBalls));
+                localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
+                
+                currentDisplay.textContent = '--';
+                
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(cell => cell.classList.remove('called'));
+                
+                resultBox.style.display = 'none';
+                document.getElementById('row1').value = '';
+                document.getElementById('row2').value = '';
+                document.getElementById('row3').value = '';
+            }
+        }
+
+        function loadSavedState() {
+            const savedBalls = localStorage.getItem('bingoCalledBalls');
+            if (savedBalls) {
+                calledBalls = JSON.parse(savedBalls);
+                calledBalls.forEach(num => {
+                    const cell = document.getElementById(`cell-${num}`);
+                    if (cell) cell.classList.add('called');
+                });
+                if (calledBalls.length > 0) {
+                    currentDisplay.textContent = calledBalls[calledBalls.length - 1];
+                }
+            }
+
+            const savedStatus = localStorage.getItem('bingoGameStatus');
+            if (savedStatus) {
+                gameStatus = JSON.parse(savedStatus);
+            }
+        }
+
+        function parseRowInput(inputId) {
+            const val = document.getElementById(inputId).value;
+            if (!val.trim()) return [];
+            
+            const rawNumbers = val.split(',')
+                                 .map(num => parseInt(num.trim(), 10))
+                                 .filter(num => !isNaN(num) && num > 0 && num <= TOTAL_BALLS);
+            
+            return [...new Set(rawNumbers)];
+        }
+
+        function verifyTicket() {
+            const r1 = parseRowInput('row1');
+            const r2 = parseRowInput('row2');
+            const r3 = parseRowInput('row3');
+
+            if (r1.length === 0 && r2.length === 0 && r3.length === 0) {
+                showResult('Please enter numbers to check.', false);
+                return;
+            }
+
+            const r1Matches = r1.filter(num => calledBalls.includes(num)).length;
+            const r2Matches = r2.filter(num => calledBalls.includes(num)).length;
+            const r3Matches = r3.filter(num => calledBalls.includes(num)).length;
+
+            const r1Cleared = r1.length > 0 && r1Matches === r1.length;
+            const r2Cleared = r2.length > 0 && r2Matches === r2.length;
+            const r3Cleared = r3.length > 0 && r3Matches === r3.length;
+
+            let completedLinesCount = 0;
+            if (r1Cleared) completedLinesCount++;
+            if (r2Cleared) completedLinesCount++;
+            if (r3Cleared) completedLinesCount++;
+
+            if (completedLinesCount === 3) {
+                gameStatus.bingoWon = true;
+                localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
+                showResult('🎉 BINGO / FULL HOUSE WINNER!', true);
+            } else if (completedLinesCount === 2) {
+                gameStatus.twoLinesWon = true;
+                localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
+                showResult('🥈 TWO LINES CLEARED!', true);
+            } else if (completedLinesCount === 1) {
+                gameStatus.oneLineWon = true;
+                localStorage.setItem('bingoGameStatus', JSON.stringify(gameStatus));
+                showResult('🥇 ONE LINE CLEARED!', true);
+            } else {
+                let feedback = '❌ No Winning Lines Matched Yet.\n';
+                if (r1.length > 0) feedback += `Row 1: ${r1Matches}/${r1.length}\n`;
+                if (r2.length > 0) feedback += `Row 2: ${r2Matches}/${r2.length}\n`;
+                if (r3.length > 0) feedback += `Row 3: ${r3Matches}/${r3.length}`;
+                showResult(feedback, false);
+            }
+        }
+
+        function showResult(message, isWin) {
+            resultBox.innerText = message;
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box ' + (isWin ? 'status-win' : 'status-fail');
+        }
+
+        drawBtn.addEventListener('click', drawBall);
+        resetBtn.addEventListener('click', resetGame);
+        checkBtn.addEventListener('click', verifyTicket);
+
+        initBoard();
+        loadSavedState();
+    </script>
+</body>
+</html>
