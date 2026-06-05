@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo - Live Audience Display</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,7 +37,7 @@
             align-items: center;
         }
 
-        /* Live Achievements Panel */
+        /* Prize Management Sidebar */
         .status-panel {
             background-color: #161625;
             padding: 20px;
@@ -73,7 +74,6 @@
         .badge.two-lines.active { background-color: #0abde3; }
         .badge.bingo.active { background-color: #10ac84; animation: flash 1s infinite alternate; }
 
-        /* Latest Drawn Ball */
         .latest-container {
             margin-bottom: 25px;
         }
@@ -92,7 +92,7 @@
             animation: popIn 0.3s ease-out;
         }
 
-        /* Shared Master Grid Layout (Updated to 10 Columns for 90 Balls) */
+        /* 10-Column Board Grid Container */
         .board-container {
             background-color: #161625;
             padding: 20px;
@@ -130,27 +130,26 @@
             transform: scale(1.02);
         }
 
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            90% { transform: scale(1.08); }
-            100% { transform: scale(1); }
+        .conn-status {
+            font-size: 0.85rem;
+            color: #ff4757;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
+        .conn-status.connected { color: #2ed573; }
 
-        @keyframes flash {
-            from { box-shadow: 0 0 5px #10ac84; }
-            to { box-shadow: 0 0 20px #10ac84; }
-        }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes flash { from { box-shadow: 0 0 5px #10ac84; } to { box-shadow: 0 0 20px #10ac84; } }
 
         @media (max-width: 950px) {
             .showcase-layout { flex-direction: column; align-items: center; }
-            .master-board { grid-template-columns: repeat(10, 1fr); }
         }
     </style>
 </head>
 <body>
 
     <h1>BINGO MAIN BOARD</h1>
-    <p style="color: #888; margin-top:0; margin-bottom: 30px;">Live Game Tracking</p>
+    <div id="connStatus" class="conn-status">📡 Connecting to Live Channel...</div>
 
     <div class="showcase-layout">
         
@@ -174,9 +173,17 @@
     </div>
 
     <script>
-        const TOTAL_BALLS = 90; // Updated to 90 Balls
+        // Injected project variables matching dashboard channel identifiers
+        const SUPABASE_URL = "https://vwcownlgofzzfnveukwe.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3Y293bmxnb2Z6emZudmV1a3dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODM0NjUsImV4cCI6MjA5NjI1OTQ2NX0.uRJHGyXxxEKgxnZyWrb3q-0nmxkkxYIRdV94lE-4Dpw";
+
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const channel = supabase.channel('bingo-global-room');
+
+        const TOTAL_BALLS = 90;
         const displayBoardGrid = document.getElementById('displayBoardGrid');
         const latestBallSlot = document.getElementById('latestBallSlot');
+        const connStatus = document.getElementById('connStatus');
         
         const badgeLine1 = document.getElementById('badgeLine1');
         const badgeLine2 = document.getElementById('badgeLine2');
@@ -193,20 +200,13 @@
             }
         }
 
-        function syncDisplayBoard() {
-            // 1. Sync Drawn Balls Grid
-            const ballData = localStorage.getItem('bingoCalledBalls');
-            const calledBalls = ballData ? JSON.parse(ballData) : [];
-
-            // Reset classes
+        function applySyncedState(calledBalls, gameStatus) {
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
-            
             calledBalls.forEach(num => {
                 const cell = document.getElementById(`view-cell-${num}`);
                 if (cell) cell.classList.add('called');
             });
 
-            // 2. Render Focal Display Ball
             if (calledBalls.length > 0) {
                 const lastBall = calledBalls[calledBalls.length - 1];
                 latestBallSlot.innerHTML = `<div class="latest-ball">${lastBall}</div>`;
@@ -214,25 +214,23 @@
                 latestBallSlot.innerHTML = '<div style="height:140px; display:flex; align-items:center; color:#444;">Ready</div>';
             }
 
-            // 3. Sync Milestone Badges
-            const statusData = localStorage.getItem('bingoGameStatus');
-            const gameStatus = statusData ? JSON.parse(statusData) : { oneLineWon: false, twoLinesWon: false, bingoWon: false };
-
             if (gameStatus.oneLineWon) badgeLine1.classList.add('active'); else badgeLine1.classList.remove('active');
             if (gameStatus.twoLinesWon) badgeLine2.classList.add('active'); else badgeLine2.classList.remove('active');
             if (gameStatus.bingoWon) badgeBingo.classList.add('active'); else badgeBingo.classList.remove('active');
         }
 
-        // Listen live for modifications performed in index.html window
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'bingoCalledBalls' || e.key === 'bingoGameStatus') {
-                syncDisplayBoard();
-            }
-        });
+        channel
+            .on('broadcast', { event: 'sync' }, ({ payload }) => {
+                applySyncedState(payload.calledBalls, payload.gameStatus);
+            })
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    connStatus.textContent = "🟢 Connected • Live Global Link Active";
+                    connStatus.className = "conn-status connected";
+                }
+            });
 
-        // Initialize setup variables on load
         buildGridUI();
-        syncDisplayBoard();
     </script>
 </body>
 </html>
