@@ -1,340 +1,341 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo - UK Theatre Display Board</title>
-    <style>
-        :root {
-            --bg-main: #0b0c10;
-            --bg-card: #1f2833;
-            --accent-glow: #66fcf1;
-            --text-bright: #ffffff;
-            --text-muted: #c5c6c7;
-            --cell-empty: #12161c;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo — UK Theatre Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-main: #0b0c10;
+  --bg-card: #1f2833;
+  --accent-glow: #66fcf1;
+  --text-bright: #ffffff;
+  --text-muted: #c5c6c7;
+  --cell-empty: #12161c;
+  --border: #2f3b4c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-bright);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--bg-card);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  background: linear-gradient(45deg, #fff, var(--accent-glow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.prizes-ticker { display: flex; gap: 12px; }
+.prize-banner {
+  padding: 7px 14px; border-radius: 30px;
+  font-weight: 800; font-size: 0.88rem;
+  background: #11141a; border: 1px solid #222b35; color: #445060;
+  transition: all 0.4s ease;
+}
+.prize-banner.active { color: #000; box-shadow: 0 0 14px var(--accent-glow); }
+.prize-banner.p1.active { background: linear-gradient(135deg, #ff9f43, #ffca28); }
+.prize-banner.p2.active { background: linear-gradient(135deg, #0abde3, #4ea5ff); }
+.prize-banner.p3.active { background: linear-gradient(135deg, #10ac84, #1dd1a1); animation: heartbeat 1.5s infinite; }
 
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-bright);
-            margin: 0;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-        }
+.conn-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
+  background: #11141a; border: 1px solid #222b35; color: var(--text-muted);
+}
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; transition: background 0.4s; }
+.conn-dot.online { background: var(--accent-glow); box-shadow: 0 0 5px var(--accent-glow); }
+.conn-dot.offline { background: #e05d5d; }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 60px;
-            border-bottom: 2px solid var(--bg-card);
-            margin-bottom: 20px;
-        }
+.theater-container {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 22px;
+  flex: 1;
+  min-height: 0;
+}
 
-        h1 {
-            margin: 0;
-            font-size: 2rem;
-            text-transform: uppercase;
-            background: linear-gradient(45deg, #fff, var(--accent-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+/* Left panel */
+.focus-panel { display: flex; flex-direction: column; gap: 16px; }
 
-        .prizes-ticker {
-            display: flex;
-            gap: 15px;
-        }
+.hero-ball-box {
+  background: var(--bg-card);
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  flex: 1;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 20px;
+}
+.hero-label {
+  font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 3px; color: var(--accent-glow); margin-bottom: 14px;
+}
+.giant-ball {
+  width: 160px; height: 160px; line-height: 160px;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--accent-glow) 50%, #005f5f 100%);
+  color: #051c1c; font-family: 'Bebas Neue', sans-serif;
+  font-size: 6rem; font-weight: 900; border-radius: 50%;
+  box-shadow: 0 10px 28px rgba(102,252,241,0.3);
+  animation: ballPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  letter-spacing: 1px;
+}
+.drawn-info {
+  margin-top: 14px; font-size: 0.8rem; color: var(--text-muted);
+}
+.drawn-info span { color: var(--accent-glow); font-weight: 700; }
 
-        .prize-banner {
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-weight: 800;
-            font-size: 0.95rem;
-            background: #11141a;
-            border: 1px solid #222b35;
-            color: #445060;
-            transition: all 0.4s ease;
-        }
+/* History reel */
+.history-reel-box {
+  background: #11141a; border-radius: 14px;
+  padding: 14px 16px; border: 1px solid #1f2631;
+}
+.reel-title {
+  font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px;
+}
+.reel-slots { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.reel-ball {
+  width: 46px; height: 46px; line-height: 46px;
+  background: #222831; color: var(--text-bright);
+  font-size: 1.2rem; font-weight: 700; border-radius: 50%;
+  text-align: center; border: 1px solid #475569;
+}
 
-        .prize-banner.active {
-            color: #000;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-        .prize-banner.p1.active { background: linear-gradient(135deg, #ff9f43, #ffca28); }
-        .prize-banner.p2.active { background: linear-gradient(135deg, #0abde3, #4ea5ff); }
-        .prize-banner.p3.active { background: linear-gradient(135deg, #10ac84, #1dd1a1); animation: heartbeat 1.5s infinite; }
+/* Right: UK 9-column board */
+.grid-panel {
+  background: var(--bg-card);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 10px;
+  align-content: start;
+}
+.uk-column { display: flex; flex-direction: column; gap: 6px; }
+.col-header {
+  text-align: center; font-size: 0.72rem;
+  color: var(--accent-glow); font-weight: 700;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+.cell {
+  flex: 1; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cell-empty); border-radius: 6px;
+  font-size: 1.15rem; font-weight: 700; color: #242c37;
+  border: 1px solid #1b222b; transition: all 0.28s ease;
+}
+.cell.called {
+  background: radial-gradient(circle at 30% 30%, #203a43, #0f2027);
+  color: var(--accent-glow);
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 10px rgba(102,252,241,0.3);
+}
 
-        .theater-container {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 25px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        /* Left Side Panels */
-        .focus-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .hero-ball-box {
-            background: var(--bg-card);
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #2f3b4c;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .hero-label {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--accent-glow);
-            margin-bottom: 15px;
-        }
-
-        .giant-ball {
-            width: 170px;
-            height: 170px;
-            line-height: 170px;
-            background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--accent-glow) 50%, #005f5f 100%);
-            color: #051c1c;
-            font-size: 6rem;
-            font-weight: 900;
-            border-radius: 50%;
-            box-shadow: 0 10px 25px rgba(102, 252, 241, 0.3);
-            animation: ballPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .history-reel-box {
-            background: #11141a;
-            border-radius: 16px;
-            padding: 15px;
-            border: 1px solid #1f2631;
-        }
-
-        .reel-slots {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 8px;
-        }
-
-        .reel-ball {
-            width: 50px;
-            height: 50px;
-            line-height: 50px;
-            background: #222831;
-            color: var(--text-bright);
-            font-size: 1.3rem;
-            font-weight: bold;
-            border-radius: 50%;
-            text-align: center;
-            border: 1px solid #475569;
-        }
-
-        /* Right Side: Traditional UK 9-Column Board Vertical Layout */
-        .grid-panel {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #2f3b4c;
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 10px;
-        }
-
-        .uk-column {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .col-header {
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--accent-glow);
-            font-weight: bold;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #2f3b4c;
-            margin-bottom: 4px;
-        }
-
-        .cell {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--cell-empty);
-            border-radius: 6px;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #242c37;
-            border: 1px solid #1b222b;
-            transition: all 0.3s ease;
-        }
-
-        .cell.called {
-            background: radial-gradient(circle at 30% 30%, #203a43, #0f2027);
-            color: var(--accent-glow);
-            border-color: var(--accent-glow);
-            box-shadow: 0 0 10px rgba(102, 252, 241, 0.3);
-        }
-
-        @keyframes ballPop {
-            0% { transform: scale(0.5); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @media (max-width: 900px) {
-            .theater-container { grid-template-columns: 1fr; }
-        }
-    </style>
+@keyframes ballPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@media (max-width: 900px) {
+  .theater-container { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>UK 90-BALL BINGO</h1>
-        <div class="prizes-ticker">
-            <div id="p1" class="prize-banner p1">🥇 1 LINE</div>
-            <div id="p2" class="prize-banner p2">🥈 2 LINES</div>
-            <div id="p3" class="prize-banner p3">🏆 FULL HOUSE</div>
-        </div>
-    </header>
+<header>
+  <h1>UK 90-BALL BINGO</h1>
+  <div class="header-right">
+    <div class="prizes-ticker">
+      <div id="p1" class="prize-banner p1">🥇 1 LINE</div>
+      <div id="p2" class="prize-banner p2">🥈 2 LINES</div>
+      <div id="p3" class="prize-banner p3">🏆 FULL HOUSE</div>
+    </div>
+    <div class="conn-pill">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connLabel">Connecting...</span>
+    </div>
+  </div>
+</header>
 
-    <div class="theater-container">
-        
-        <div class="focus-panel">
-            <div class="hero-ball-box">
-                <div id="heroLabel" class="hero-label"></div>
-                <div id="giantBallSlot"><div style="color:#4f5e71;">Waiting...</div></div>
-            </div>
-
-            <div class="history-reel-box">
-                <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted);">Previous</div>
-                <div class="reel-slots" id="historyReel"></div>
-            </div>
-        </div>
-
-        <div class="grid-panel" id="ukGridBoard"></div>
-
+<div class="theater-container">
+  <div class="focus-panel">
+    <div class="hero-ball-box">
+      <div id="heroLabel" class="hero-label">Waiting for host...</div>
+      <div id="giantBallSlot"><div style="color:#4f5e71; font-size:1rem;">—</div></div>
+      <div class="drawn-info">Drawn: <span id="drawnCount">0</span> / 90</div>
     </div>
 
-    <script>
-        const TOTAL_BALLS = 90;
-        const ukGridBoard = document.getElementById('ukGridBoard');
-        const giantBallSlot = document.getElementById('giantBallSlot');
-        const heroLabel = document.getElementById('heroLabel');
-        const historyReel = document.getElementById('historyReel');
+    <div class="history-reel-box">
+      <div class="reel-title">Previous 5 Balls</div>
+      <div class="reel-slots" id="historyReel">
+        <span style="color:#2c3540; font-size:0.85rem;">None yet</span>
+      </div>
+    </div>
+  </div>
 
-        // Layout numbers into columns matching standard UK ticket index boundaries
-        function buildUKGrid() {
-            ukGridBoard.innerHTML = '';
-            
-            const columns = [
-                { label: '1-9', min: 1, max: 9 },
-                { label: '10-19', min: 10, max: 19 },
-                { label: '20-29', min: 20, max: 29 },
-                { label: '30-39', min: 30, max: 39 },
-                { label: '40-49', min: 40, max: 49 },
-                { label: '50-59', min: 50, max: 59 },
-                { label: '60-69', min: 60, max: 69 },
-                { label: '70-79', min: 70, max: 79 },
-                { label: '80-90', min: 80, max: 90 }
-            ];
+  <div class="grid-panel" id="ukGridBoard"></div>
+</div>
 
-            columns.forEach(col => {
-                const colDiv = document.createElement('div');
-                colDiv.className = 'uk-column';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-                const header = document.createElement('div');
-                header.className = 'col-header';
-                header.textContent = col.label;
-                colDiv.appendChild(header);
+// ============================================================
+// 🔧 REPLACE with your Firebase project config (same as index.html)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyA44GicpEIjrO0HhzbItABAXJ1gj_jCmO4",
+  authDomain: "bingo-b7631.firebaseapp.com",
+  databaseURL: "https://bingo-b7631-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bingo-b7631",
+  storageBucket: "bingo-b7631.firebasestorage.app",
+  messagingSenderId: "807313017887",
+  appId: "1:807313017887:web:8b2129aec19ca82289d92a"
+};
+// ============================================================
 
-                for (let i = col.min; i <= col.max; i++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.id = `uk-cell-${i}`;
-                    cell.textContent = i;
-                    colDiv.appendChild(cell);
-                }
-                
-                // Add blank layout fill spacers to make columns with fewer numbers match heights smoothly
-                if(col.max - col.min < 10) {
-                    const spacer = document.createElement('div');
-                    spacer.className = 'cell';
-                    spacer.style.visibility = 'hidden';
-                    colDiv.appendChild(spacer);
-                }
+const COLUMNS = [
+  { label: '1–9',   min: 1,  max: 9  },
+  { label: '10–19', min: 10, max: 19 },
+  { label: '20–29', min: 20, max: 29 },
+  { label: '30–39', min: 30, max: 39 },
+  { label: '40–49', min: 40, max: 49 },
+  { label: '50–59', min: 50, max: 59 },
+  { label: '60–69', min: 60, max: 69 },
+  { label: '70–79', min: 70, max: 79 },
+  { label: '80–90', min: 80, max: 90 },
+];
 
-                ukGridBoard.appendChild(colDiv);
-            });
-        }
+function buildUKGrid() {
+  const board = document.getElementById('ukGridBoard');
+  board.innerHTML = '';
+  COLUMNS.forEach(col => {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'uk-column';
+    const hdr = document.createElement('div');
+    hdr.className = 'col-header';
+    hdr.textContent = col.label;
+    colDiv.appendChild(hdr);
+    for (let i = col.min; i <= col.max; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `uk-cell-${i}`;
+      cell.textContent = i;
+      colDiv.appendChild(cell);
+    }
+    // Balance column heights (col 1–9 has 9 entries vs 10 for others)
+    if (col.max - col.min < 9) {
+      const spacer = document.createElement('div');
+      spacer.className = 'cell';
+      spacer.style.visibility = 'hidden';
+      colDiv.appendChild(spacer);
+    }
+    board.appendChild(colDiv);
+  });
+}
 
-        function syncDisplay() {
-            const ballData = localStorage.getItem('bingoCalledBalls');
-            const calledBalls = ballData ? JSON.parse(ballData) : [];
+function render(calledBalls, gameStatus) {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
+  calledBalls.forEach(n => {
+    const c = document.getElementById(`uk-cell-${n}`);
+    if (c) c.classList.add('called');
+  });
 
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
-            calledBalls.forEach(num => {
-                const cell = document.getElementById(`uk-cell-${num}`);
-                if (cell) cell.classList.add('called');
-            });
+  // Latest ball
+  const heroLabel = document.getElementById('heroLabel');
+  const slot = document.getElementById('giantBallSlot');
+  if (calledBalls.length > 0) {
+    heroLabel.textContent = 'Last Ball';
+    slot.innerHTML = `<div class="giant-ball">${calledBalls[calledBalls.length - 1]}</div>`;
+  } else {
+    heroLabel.textContent = 'Waiting for host...';
+    slot.innerHTML = '<div style="color:#4f5e71; font-size:1rem;">—</div>';
+  }
 
-            if (calledBalls.length > 0) {
-                const active = calledBalls[calledBalls.length - 1];
-                heroLabel.textContent = "Last Ball";
-                giantBallSlot.innerHTML = `<div class="giant-ball">${active}</div>`;
-            } else {
-                heroLabel.textContent = "";
-                giantBallSlot.innerHTML = '<div style="color:#4f5e71;">Waiting...</div>';
-            }
+  // Drawn counter
+  document.getElementById('drawnCount').textContent = calledBalls.length;
 
-            if (calledBalls.length > 1) {
-                historyReel.innerHTML = '';
-                calledBalls.slice(0, -1).reverse().slice(0, 3).forEach(num => {
-                    const b = document.createElement('div');
-                    b.className = 'reel-ball';
-                    b.textContent = num;
-                    historyReel.appendChild(b);
-                });
-            } else {
-                historyReel.innerHTML = '<div style="color:#2c3540; font-size:0.9rem;">None</div>';
-            }
+  // History reel
+  const reel = document.getElementById('historyReel');
+  const prev = [...calledBalls].slice(0, -1).reverse().slice(0, 5);
+  if (prev.length === 0) {
+    reel.innerHTML = '<span style="color:#2c3540; font-size:0.85rem;">None yet</span>';
+  } else {
+    reel.innerHTML = '';
+    prev.forEach(n => {
+      const b = document.createElement('div');
+      b.className = 'reel-ball';
+      b.textContent = n;
+      reel.appendChild(b);
+    });
+  }
 
-            const statusData = localStorage.getItem('bingoGameStatus');
-            const gameStatus = statusData ? JSON.parse(statusData) : { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+  // Prizes
+  document.getElementById('p1').classList.toggle('active', gameStatus.oneLineWon);
+  document.getElementById('p2').classList.toggle('active', gameStatus.twoLinesWon);
+  document.getElementById('p3').classList.toggle('active', gameStatus.bingoWon);
+}
 
-            document.getElementById('p1').classList.toggle('active', gameStatus.oneLineWon);
-            document.getElementById('p2').classList.toggle('active', gameStatus.twoLinesWon);
-            document.getElementById('p3').classList.toggle('active', gameStatus.bingoWon);
-        }
+function loadLocal() {
+  try {
+    const b = JSON.parse(localStorage.getItem('bingoCalledBalls') || '[]');
+    const s = JSON.parse(localStorage.getItem('bingoGameStatus') || '{}');
+    render(b, { oneLineWon: false, twoLinesWon: false, bingoWon: false, ...s });
+  } catch(e) { render([], {}); }
+}
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'bingoCalledBalls' || e.key === 'bingoGameStatus') syncDisplay();
-        });
+try {
+  const app = initializeApp(firebaseConfig);
+  if (true) { // Firebase configured
+    const db = getDatabase(app);
+    document.getElementById('connDot').className = 'conn-dot online';
+    document.getElementById('connLabel').textContent = 'Live — Firebase sync active';
+    let balls = [], status = {};
+    onValue(ref(db, 'bingo/calledBalls'), snap => { balls = snap.val() || []; render(balls, status); });
+    onValue(ref(db, 'bingo/gameStatus'), snap => { status = snap.val() || {}; render(balls, status); });
+  } else { throw new Error('placeholder'); }
+} catch(e) {
+  document.getElementById('connDot').className = 'conn-dot offline';
+  document.getElementById('connLabel').textContent = 'Local only — configure Firebase for cross-device sync';
+  loadLocal();
+  window.addEventListener('storage', ev => {
+    if (ev.key === 'bingoCalledBalls' || ev.key === 'bingoGameStatus') loadLocal();
+  });
+}
 
-        buildUKGrid();
-        syncDisplay();
-    </script>
+buildUKGrid();
+</script>
 </body>
 </html>

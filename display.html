@@ -1,238 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo - Live Audience Display</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a2e;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo — Live Audience Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1a2e;
+  --bg2: #161625;
+  --accent: #4e9af1;
+  --accent2: #00ffcc;
+  --text: #fff;
+  --muted: #888;
+  --border: #2d2d44;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  text-align: center;
+  min-height: 100vh;
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--accent);
+  font-size: 2.8rem;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+.sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
 
-        h1 {
-            color: #4e9af1;
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-        }
+.conn-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 0.78rem; padding: 4px 12px; border-radius: 20px;
+  background: var(--bg2); border: 1px solid var(--border); margin-bottom: 22px;
+}
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.4s; }
+.conn-dot.online { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+.conn-dot.offline { background: #e05d5d; }
 
-        .showcase-layout {
-            display: flex;
-            flex-direction: row;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-            justify-content: center;
-            align-items: flex-start;
-        }
+.showcase-layout {
+  display: flex; gap: 28px; max-width: 1200px;
+  margin: 0 auto; justify-content: center; align-items: flex-start;
+}
+.left-panel { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+/* Latest ball */
+.latest-ball {
+  width: 150px; height: 150px; line-height: 150px;
+  background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
+  color: #fff; font-family: 'Bebas Neue', sans-serif;
+  font-size: 5rem; font-weight: 900; border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  animation: popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  letter-spacing: 1px;
+}
+.ball-label {
+  font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--muted); margin-bottom: 8px;
+}
 
-        /* Live Achievements Panel */
-        .status-panel {
-            background-color: #161625;
-            padding: 20px;
-            border-radius: 10px;
-            width: 280px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            text-align: left;
-        }
+/* Last 5 reel */
+.reel-box {
+  background: var(--bg2); border-radius: 12px;
+  padding: 14px 18px; border: 1px solid var(--border); width: 200px;
+}
+.reel-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+.reel-slots { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.reel-ball {
+  width: 38px; height: 38px; line-height: 38px;
+  background: #222235; color: var(--text);
+  font-size: 1rem; font-weight: 700; border-radius: 50%;
+  text-align: center; border: 1px solid #475569;
+}
 
-        .status-panel h3 {
-            margin-top: 0;
-            color: #00ffcc;
-            border-bottom: 1px solid #3d3d5c;
-            padding-bottom: 8px;
-        }
+/* Prize badges */
+.status-panel {
+  background: var(--bg2); padding: 18px;
+  border-radius: 12px; width: 200px; border: 1px solid var(--border); text-align: left;
+}
+.status-panel h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+  letter-spacing: 1px; color: var(--accent2);
+  border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;
+}
+.badge {
+  padding: 10px; margin: 8px 0; border-radius: 6px;
+  font-weight: 700; font-size: 0.85rem;
+  background: #222235; color: #555570;
+  text-align: center; transition: all 0.4s ease;
+}
+.badge.active { color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+.badge.one-line.active { background: #ff9f43; }
+.badge.two-lines.active { background: #0abde3; }
+.badge.bingo.active { background: #10ac84; animation: pulse 1.5s infinite; }
 
-        .badge {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-weight: bold;
-            background-color: #222235;
-            color: #555570;
-            text-align: center;
-            transition: all 0.4s ease;
-        }
+/* Board */
+.board-container {
+  background: var(--bg2); padding: 22px;
+  border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+}
+.board-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; letter-spacing: 1px; color: var(--muted);
+  margin-bottom: 14px; text-align: left;
+}
+.master-board {
+  display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; max-width: 750px;
+}
+.cell {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: #0f0f1a; border: 1px solid var(--border); border-radius: 5px;
+  font-size: 1.05rem; font-weight: 700; color: #333344;
+  transition: all 0.28s ease;
+}
+.cell.called {
+  background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
+  color: #fff; border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(78,154,241,0.4); transform: scale(1.04);
+}
 
-        .badge.active {
-            color: #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.1);
-        }
+/* Balls drawn counter */
+.drawn-counter {
+  font-size: 0.85rem; color: var(--muted); margin-top: 12px; text-align: right;
+}
+.drawn-counter span { color: var(--accent); font-weight: 700; }
 
-        .badge.one-line.active { background-color: #ff9f43; }
-        .badge.two-lines.active { background-color: #0abde3; }
-        .badge.bingo.active { background-color: #10ac84; animation: flash 1s infinite alternate; }
-
-        /* Latest Drawn Ball */
-        .latest-container {
-            margin-bottom: 25px;
-        }
-
-        .latest-ball {
-            display: inline-block;
-            width: 140px;
-            height: 140px;
-            line-height: 140px;
-            background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
-            color: white;
-            font-size: 4.5rem;
-            font-weight: bold;
-            border-radius: 50%;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            animation: popIn 0.3s ease-out;
-        }
-
-        /* Shared Master Grid Layout (Updated to 10 Columns for 90 Balls) */
-        .board-container {
-            background-color: #161625;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        .master-board {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 8px;
-            max-width: 750px;
-        }
-
-        .cell {
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #0f0f1a;
-            border: 1px solid #2d2d44;
-            border-radius: 4px;
-            font-size: 1.05rem;
-            font-weight: bold;
-            color: #333344;
-            transition: all 0.3s ease;
-        }
-
-        .cell.called {
-            background: radial-gradient(circle at 30% 30%, #4e9af1, #1f64b8);
-            color: #fff;
-            border-color: #4e9af1;
-            box-shadow: 0 0 8px rgba(78, 154, 241, 0.4);
-            transform: scale(1.02);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            90% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes flash {
-            from { box-shadow: 0 0 5px #10ac84; }
-            to { box-shadow: 0 0 20px #10ac84; }
-        }
-
-        @media (max-width: 950px) {
-            .showcase-layout { flex-direction: column; align-items: center; }
-            .master-board { grid-template-columns: repeat(10, 1fr); }
-        }
-    </style>
+@keyframes popIn {
+  0% { transform: scale(0.4); opacity: 0; }
+  80% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 6px #10ac84; }
+  50% { box-shadow: 0 0 20px #10ac84; }
+}
+@media (max-width: 950px) {
+  .showcase-layout { flex-direction: column; align-items: center; }
+}
+</style>
 </head>
 <body>
+<h1>BINGO MAIN BOARD</h1>
+<p class="sub">Live Game Display</p>
 
-    <h1>BINGO MAIN BOARD</h1>
-    <p style="color: #888; margin-top:0; margin-bottom: 30px;">Live Game Tracking</p>
+<div class="conn-pill">
+  <div class="conn-dot" id="connDot"></div>
+  <span id="connLabel">Connecting...</span>
+</div>
 
-    <div class="showcase-layout">
-        
-        <div class="left-panel">
-            <div class="latest-container">
-                <div id="latestBallSlot"></div>
-            </div>
-
-            <div class="status-panel">
-                <h3>Prizes Status</h3>
-                <div id="badgeLine1" class="badge one-line">🥇 1 LINE</div>
-                <div id="badgeLine2" class="badge two-lines">🥈 2 LINES</div>
-                <div id="badgeBingo" class="badge bingo">🏆 FULL HOUSE / BINGO</div>
-            </div>
-        </div>
-
-        <div class="board-container">
-            <div class="master-board" id="displayBoardGrid"></div>
-        </div>
-
+<div class="showcase-layout">
+  <div class="left-panel">
+    <div>
+      <div class="ball-label">Latest Ball</div>
+      <div id="latestBallSlot"><div style="width:150px;height:150px;line-height:150px;color:#444;font-size:1rem;">Ready</div></div>
     </div>
 
-    <script>
-        const TOTAL_BALLS = 90; // Updated to 90 Balls
-        const displayBoardGrid = document.getElementById('displayBoardGrid');
-        const latestBallSlot = document.getElementById('latestBallSlot');
-        
-        const badgeLine1 = document.getElementById('badgeLine1');
-        const badgeLine2 = document.getElementById('badgeLine2');
-        const badgeBingo = document.getElementById('badgeBingo');
+    <div class="reel-box">
+      <div class="reel-title">Previous 5</div>
+      <div class="reel-slots" id="historyReel">
+        <span style="color:#444;font-size:0.8rem;">None yet</span>
+      </div>
+    </div>
 
-        function buildGridUI() {
-            displayBoardGrid.innerHTML = '';
-            for (let i = 1; i <= TOTAL_BALLS; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.id = `view-cell-${i}`;
-                cell.textContent = i;
-                displayBoardGrid.appendChild(cell);
-            }
-        }
+    <div class="status-panel">
+      <h3>Prize Status</h3>
+      <div id="badgeLine1" class="badge one-line">🥇 1 LINE</div>
+      <div id="badgeLine2" class="badge two-lines">🥈 2 LINES</div>
+      <div id="badgeBingo" class="badge bingo">🏆 FULL HOUSE</div>
+    </div>
+  </div>
 
-        function syncDisplayBoard() {
-            // 1. Sync Drawn Balls Grid
-            const ballData = localStorage.getItem('bingoCalledBalls');
-            const calledBalls = ballData ? JSON.parse(ballData) : [];
+  <div class="board-container">
+    <div class="board-title">MASTER BOARD — 90 BALLS</div>
+    <div class="master-board" id="displayBoardGrid"></div>
+    <div class="drawn-counter">Drawn: <span id="drawnCount">0</span> / 90</div>
+  </div>
+</div>
 
-            // Reset classes
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
-            
-            calledBalls.forEach(num => {
-                const cell = document.getElementById(`view-cell-${num}`);
-                if (cell) cell.classList.add('called');
-            });
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-            // 2. Render Focal Display Ball
-            if (calledBalls.length > 0) {
-                const lastBall = calledBalls[calledBalls.length - 1];
-                latestBallSlot.innerHTML = `<div class="latest-ball">${lastBall}</div>`;
-            } else {
-                latestBallSlot.innerHTML = '<div style="height:140px; display:flex; align-items:center; color:#444;">Ready</div>';
-            }
+// ============================================================
+// 🔧 REPLACE with your Firebase project config (same as index.html)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyA44GicpEIjrO0HhzbItABAXJ1gj_jCmO4",
+  authDomain: "bingo-b7631.firebaseapp.com",
+  databaseURL: "https://bingo-b7631-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bingo-b7631",
+  storageBucket: "bingo-b7631.firebasestorage.app",
+  messagingSenderId: "807313017887",
+  appId: "1:807313017887:web:8b2129aec19ca82289d92a"
+};
+// ============================================================
 
-            // 3. Sync Milestone Badges
-            const statusData = localStorage.getItem('bingoGameStatus');
-            const gameStatus = statusData ? JSON.parse(statusData) : { oneLineWon: false, twoLinesWon: false, bingoWon: false };
+const TOTAL_BALLS = 90;
+let useFirebase = false;
 
-            if (gameStatus.oneLineWon) badgeLine1.classList.add('active'); else badgeLine1.classList.remove('active');
-            if (gameStatus.twoLinesWon) badgeLine2.classList.add('active'); else badgeLine2.classList.remove('active');
-            if (gameStatus.bingoWon) badgeBingo.classList.add('active'); else badgeBingo.classList.remove('active');
-        }
+function buildGrid() {
+  const grid = document.getElementById('displayBoardGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TOTAL_BALLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.id = `view-cell-${i}`;
+    cell.textContent = i;
+    grid.appendChild(cell);
+  }
+}
 
-        // Listen live for modifications performed in index.html window
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'bingoCalledBalls' || e.key === 'bingoGameStatus') {
-                syncDisplayBoard();
-            }
-        });
+function render(calledBalls, gameStatus) {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('called'));
+  calledBalls.forEach(n => {
+    const c = document.getElementById(`view-cell-${n}`);
+    if (c) c.classList.add('called');
+  });
 
-        // Initialize setup variables on load
-        buildGridUI();
-        syncDisplayBoard();
-    </script>
+  // Latest ball
+  const slot = document.getElementById('latestBallSlot');
+  if (calledBalls.length > 0) {
+    const last = calledBalls[calledBalls.length - 1];
+    slot.innerHTML = `<div class="latest-ball">${last}</div>`;
+  } else {
+    slot.innerHTML = '<div style="width:150px;height:150px;line-height:150px;color:#444;font-size:1rem;">Ready</div>';
+  }
+
+  // History reel (last 5, excluding very latest)
+  const reel = document.getElementById('historyReel');
+  const prev = [...calledBalls].slice(0, -1).reverse().slice(0, 5);
+  if (prev.length === 0) {
+    reel.innerHTML = '<span style="color:#444;font-size:0.8rem;">None yet</span>';
+  } else {
+    reel.innerHTML = '';
+    prev.forEach(n => {
+      const b = document.createElement('div');
+      b.className = 'reel-ball';
+      b.textContent = n;
+      reel.appendChild(b);
+    });
+  }
+
+  // Drawn counter
+  document.getElementById('drawnCount').textContent = calledBalls.length;
+
+  // Badges
+  document.getElementById('badgeLine1').classList.toggle('active', gameStatus.oneLineWon);
+  document.getElementById('badgeLine2').classList.toggle('active', gameStatus.twoLinesWon);
+  document.getElementById('badgeBingo').classList.toggle('active', gameStatus.bingoWon);
+}
+
+function loadLocal() {
+  try {
+    const b = JSON.parse(localStorage.getItem('bingoCalledBalls') || '[]');
+    const s = JSON.parse(localStorage.getItem('bingoGameStatus') || '{}');
+    render(b, { oneLineWon: false, twoLinesWon: false, bingoWon: false, ...s });
+  } catch(e) { render([], {}); }
+}
+
+// Firebase
+try {
+  const app = initializeApp(firebaseConfig);
+  if (true) { // Firebase configured
+    const db = getDatabase(app);
+    useFirebase = true;
+    document.getElementById('connDot').className = 'conn-dot online';
+    document.getElementById('connLabel').textContent = 'Live — Firebase sync active';
+
+    let balls = [], status = {};
+    onValue(ref(db, 'bingo/calledBalls'), snap => {
+      balls = snap.val() || [];
+      render(balls, status);
+    });
+    onValue(ref(db, 'bingo/gameStatus'), snap => {
+      status = snap.val() || {};
+      render(balls, status);
+    });
+  } else { throw new Error('placeholder'); }
+} catch(e) {
+  document.getElementById('connDot').className = 'conn-dot offline';
+  document.getElementById('connLabel').textContent = 'Local only — configure Firebase for cross-device sync';
+  loadLocal();
+  window.addEventListener('storage', ev => {
+    if (ev.key === 'bingoCalledBalls' || ev.key === 'bingoGameStatus') loadLocal();
+  });
+}
+
+buildGrid();
+</script>
 </body>
 </html>
